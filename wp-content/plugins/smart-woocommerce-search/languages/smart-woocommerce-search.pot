@@ -1,0 +1,892 @@
+# Copyright (C) 2023 YummyWP
+# This file is distributed under the same license as the Smart WooCommerce Search plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Smart WooCommerce Search 2.6.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/smart-woocommerce-search\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-08-04T06:31:09+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.4.0\n"
+"X-Domain: smart-woocommerce-search\n"
+
+#. Plugin Name of the plugin
+msgid "Smart WooCommerce Search"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://yummywp.com/plugins/smart-woocommerce-search/"
+msgstr ""
+
+#. Description of the plugin
+msgid "Ajax Smart WooCommerce Search allows you to instantly search products."
+msgstr ""
+
+#. Author of the plugin
+msgid "YummyWP"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://yummywp.com"
+msgstr ""
+
+#: inc/admin/admin.php:19
+#: inc/admin/admin.php:20
+#: inc/compat/class-module-elementor.php:86
+#: inc/compat/compat-visual-composer.php:27
+#: inc/custom/class-ysm-search-widget.php:12
+msgid "Smart Search"
+msgstr ""
+
+#: inc/admin/admin.php:29
+msgid "Search Widgets"
+msgstr ""
+
+#: inc/admin/admin.php:30
+msgid "Widgets"
+msgstr ""
+
+#: inc/admin/admin.php:37
+msgid "Add New Search Widget"
+msgstr ""
+
+#: inc/admin/admin.php:38
+#: templates/admin-page-widgets.php:110
+msgid "Add New"
+msgstr ""
+
+#: inc/admin/admin.php:45
+#: inc/admin/admin.php:46
+#: templates/admin-tab-spellcheck.php:8
+msgid "Synonyms"
+msgstr ""
+
+#: inc/admin/admin.php:53
+#: inc/admin/admin.php:54
+#: templates/admin-page-form.php:14
+#: templates/admin-tab-stopwords.php:8
+msgid "Stop Words"
+msgstr ""
+
+#: inc/admin/admin.php:61
+#: inc/admin/admin.php:62
+#: index.php:280
+#: templates/admin-page-stop-words.php:22
+#: templates/admin-page-synonyms.php:25
+#: templates/promo/promo-banners.php:29
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: inc/app/class-field.php:280
+msgid "Available in PRO"
+msgstr ""
+
+#: inc/compat/class-module-elementor.php:92
+#: inc/compat/compat-visual-composer.php:17
+msgid "No value"
+msgstr ""
+
+#: inc/compat/class-module-elementor.php:104
+#: inc/compat/compat-visual-composer.php:41
+msgid "Select one of search widgets"
+msgstr ""
+
+#: inc/compat/compat-visual-composer.php:38
+msgid "Widget name"
+msgstr ""
+
+#: inc/custom/class-ysm-search-widget.php:15
+msgid "Displays search box"
+msgstr ""
+
+#: inc/custom/class-ysm-search-widget.php:47
+msgid "Title:"
+msgstr ""
+
+#: inc/custom/class-ysm-search-widget.php:51
+msgid "Select Widget:"
+msgstr ""
+
+#: inc/custom/class-ysm-widget-manager.php:267
+msgid "Your changes have been saved."
+msgstr ""
+
+#: inc/custom/class-ysm-widget-manager.php:342
+msgctxt "submit button"
+msgid "Search"
+msgstr ""
+
+#: inc/custom/functions.php:26
+msgid "WordPres Default Search"
+msgstr ""
+
+#: inc/custom/functions.php:27
+msgid "WooCommerce Product Search"
+msgstr ""
+
+#: inc/custom/functions.php:28
+msgid "Avada Search Bar"
+msgstr ""
+
+#: inc/custom/functions.php:29
+msgid "DIVI Search Bar"
+msgstr ""
+
+#: inc/custom/functions.php:99
+msgid "Duplicate"
+msgstr ""
+
+#: inc/custom/functions.php:102
+msgid "Delete"
+msgstr ""
+
+#: index.php:28
+msgid "To activate the free version of Smart WooCommerce Search you need to deactivate the Pro version."
+msgstr ""
+
+#: index.php:195
+msgid "Delete column?"
+msgstr ""
+
+#: index.php:196
+msgid "Delete row?"
+msgstr ""
+
+#: index.php:197
+msgid "Delete widget?"
+msgstr ""
+
+#. translators: %s: Name/id of a widget
+#: index.php:224
+msgid "Edit Widget: %s"
+msgstr ""
+
+#. translators: %s: Name of a site
+#: index.php:231
+msgid "Network Admin: %s"
+msgstr ""
+
+#. translators: %s: Name of a site
+#: index.php:234
+msgid "User Dashboard: %s"
+msgstr ""
+
+#. translators: Admin screen title. 1: Admin screen name, 2: Network or site name.
+#: index.php:239
+msgid "%1$s &lsaquo; %2$s &#8212; WordPress"
+msgstr ""
+
+#: index.php:279
+#: templates/admin-page-form.php:44
+msgid "Settings"
+msgstr ""
+
+#: templates/admin-page-form.php:9
+msgid "General"
+msgstr ""
+
+#: templates/admin-page-form.php:10
+msgid "Items to Search Through"
+msgstr ""
+
+#: templates/admin-page-form.php:11
+msgid "Layout"
+msgstr ""
+
+#: templates/admin-page-form.php:12
+msgid "Styling"
+msgstr ""
+
+#: templates/admin-page-form.php:13
+msgid "Spell Correction"
+msgstr ""
+
+#: templates/admin-page-form.php:19
+#: templates/admin-page-form.php:73
+msgid "Save"
+msgstr ""
+
+#: templates/admin-page-form.php:29
+msgid "Enter name"
+msgstr ""
+
+#: templates/admin-page-form.php:40
+msgid "Toggle panel: Settings"
+msgstr ""
+
+#: templates/admin-page-stop-words.php:16
+#: templates/admin-page-synonyms.php:19
+msgid "Applies globally to all widgets."
+msgstr ""
+
+#: templates/admin-page-stop-words.php:17
+#: templates/admin-tab-stopwords.php:10
+msgid "Add a list of words that should be skipped from the search request."
+msgstr ""
+
+#: templates/admin-page-synonyms.php:17
+msgid "Spell Correction."
+msgstr ""
+
+#: templates/admin-page-synonyms.php:20
+#: templates/admin-tab-spellcheck.php:10
+msgid "Add synonyms for words you think could be misspelled.<br> Example Orange => Ornge"
+msgstr ""
+
+#: templates/admin-page-widgets.php:24
+msgid "Edit Widget"
+msgstr ""
+
+#: templates/admin-page-widgets.php:36
+msgid "Extend Default Widgets"
+msgstr ""
+
+#: templates/admin-page-widgets.php:43
+#: templates/admin-page-widgets.php:83
+msgid "ID"
+msgstr ""
+
+#: templates/admin-page-widgets.php:44
+#: templates/admin-page-widgets.php:84
+msgid "Name"
+msgstr ""
+
+#: templates/admin-page-widgets.php:64
+msgid "Enabled"
+msgstr ""
+
+#: templates/admin-page-widgets.php:65
+msgid "Disabled"
+msgstr ""
+
+#: templates/admin-page-widgets.php:76
+msgid "Custom Widgets"
+msgstr ""
+
+#: templates/admin-page-widgets.php:85
+msgid "Shortcode"
+msgstr ""
+
+#: templates/admin-tab-fields.php:10
+msgid "Post Types"
+msgstr ""
+
+#. translators: %s: Name of a field to
+#: templates/admin-tab-fields.php:27
+msgid "%s"
+msgstr ""
+
+#. translators: %s: Name of a Post Type
+#: templates/admin-tab-fields.php:29
+msgid "Enable search through %s"
+msgstr ""
+
+#: templates/admin-tab-fields.php:41
+msgid "Product Variations"
+msgstr ""
+
+#: templates/admin-tab-fields.php:42
+msgid "Enable search through Product Variations"
+msgstr ""
+
+#: templates/admin-tab-fields.php:50
+msgid "Custom Post Types"
+msgstr ""
+
+#: templates/admin-tab-fields.php:51
+msgid "Enable search through selected custom post types"
+msgstr ""
+
+#: templates/admin-tab-fields.php:55
+msgid "Fields"
+msgstr ""
+
+#: templates/admin-tab-fields.php:61
+msgid "Title"
+msgstr ""
+
+#: templates/admin-tab-fields.php:62
+msgid "Enable search in post / product title"
+msgstr ""
+
+#: templates/admin-tab-fields.php:68
+msgid "Content"
+msgstr ""
+
+#: templates/admin-tab-fields.php:69
+msgid "Enable search in post / product content"
+msgstr ""
+
+#: templates/admin-tab-fields.php:75
+msgid "Excerpt"
+msgstr ""
+
+#: templates/admin-tab-fields.php:76
+msgid "Enable search in post / product excerpt"
+msgstr ""
+
+#: templates/admin-tab-fields.php:82
+msgid "Product SKU"
+msgstr ""
+
+#: templates/admin-tab-fields.php:83
+msgid "Enable search in product SKU"
+msgstr ""
+
+#: templates/admin-tab-fields.php:89
+msgid "Custom Fields"
+msgstr ""
+
+#: templates/admin-tab-fields.php:90
+msgid "Enable search in Custom Fields. Fill in field slugs separated by comma"
+msgstr ""
+
+#: templates/admin-tab-fields.php:95
+msgid "Taxonomies"
+msgstr ""
+
+#: templates/admin-tab-fields.php:101
+msgid "Post Tag"
+msgstr ""
+
+#: templates/admin-tab-fields.php:102
+msgid "Enable search in post tag"
+msgstr ""
+
+#: templates/admin-tab-fields.php:108
+msgid "Post Category"
+msgstr ""
+
+#: templates/admin-tab-fields.php:109
+msgid "Enable search in post category"
+msgstr ""
+
+#: templates/admin-tab-fields.php:116
+msgid "Product Tag"
+msgstr ""
+
+#: templates/admin-tab-fields.php:117
+msgid "Enable search in product tag"
+msgstr ""
+
+#: templates/admin-tab-fields.php:123
+msgid "Product Category"
+msgstr ""
+
+#: templates/admin-tab-fields.php:124
+msgid "Enable search in product category"
+msgstr ""
+
+#: templates/admin-tab-fields.php:131
+msgid "Custom Taxonomies"
+msgstr ""
+
+#: templates/admin-tab-fields.php:132
+msgid "Enable search in selected custom taxonomies"
+msgstr ""
+
+#: templates/admin-tab-fields.php:152
+msgid "Allowed Product Categories"
+msgstr ""
+
+#: templates/admin-tab-fields.php:153
+msgid "Limit customers' search to selected product categories"
+msgstr ""
+
+#: templates/admin-tab-fields.php:160
+msgid "Disallowed Product Categories"
+msgstr ""
+
+#: templates/admin-tab-fields.php:161
+msgid "Disallow search in selected product categories"
+msgstr ""
+
+#: templates/admin-tab-general.php:8
+#: templates/admin-tab-general.php:17
+#: templates/admin-tab-general.php:26
+msgid "Enable Smart Search"
+msgstr ""
+
+#: templates/admin-tab-general.php:9
+msgid "Extend Default search bar with the Smart Search features."
+msgstr ""
+
+#: templates/admin-tab-general.php:18
+msgid "Extend Product search bar with the Smart Search features."
+msgstr ""
+
+#: templates/admin-tab-general.php:27
+msgid "Extend Avada search bar with the Smart Search features."
+msgstr ""
+
+#: templates/admin-tab-general.php:35
+msgid "Placeholder"
+msgstr ""
+
+#: templates/admin-tab-general.php:36
+msgid "Placeholder in search input"
+msgstr ""
+
+#: templates/admin-tab-general.php:37
+msgctxt "placeholder"
+msgid "Search &hellip;"
+msgstr ""
+
+#: templates/admin-tab-general.php:43
+msgid "Character Amount"
+msgstr ""
+
+#: templates/admin-tab-general.php:44
+msgid "Minimum number of character"
+msgstr ""
+
+#: templates/admin-tab-general.php:50
+msgid "Results Listing Amount"
+msgstr ""
+
+#: templates/admin-tab-general.php:51
+msgid "Maximum number of results"
+msgstr ""
+
+#: templates/admin-tab-general.php:57
+msgid "\"No Results\" text"
+msgstr ""
+
+#: templates/admin-tab-general.php:58
+msgid "If not empty displays when no results returned"
+msgstr ""
+
+#: templates/admin-tab-general.php:64
+msgid "Excerpt Symbols Amount"
+msgstr ""
+
+#: templates/admin-tab-general.php:65
+msgid "Maximum number of symbols for description in results"
+msgstr ""
+
+#: templates/admin-tab-general.php:71
+msgid "\"View all\" Link Text"
+msgstr ""
+
+#: templates/admin-tab-general.php:72
+msgid "If not empty displays a link at the bottom of results popup"
+msgstr ""
+
+#: templates/admin-tab-general.php:78
+msgid "\"View all\" Link in New Tab"
+msgstr ""
+
+#: templates/admin-tab-general.php:79
+msgid "Adds target=\"_blank\" attribute to the \"View all\" link"
+msgstr ""
+
+#: templates/admin-tab-general.php:85
+msgid "Number of Found Posts in the \"View all\" Link"
+msgstr ""
+
+#: templates/admin-tab-general.php:86
+msgid "Display total number of found posts in the \"View all\" link<br>This is advanced option, use it only if you know what you do.<br>It may affect search performance"
+msgstr ""
+
+#: templates/admin-tab-general.php:92
+msgid "Default Output on Search Page"
+msgstr ""
+
+#: templates/admin-tab-general.php:93
+msgid "Disable altering search results by Smart Search plugin on the search results page.<br>By default the plugin modified search results according to selected options"
+msgstr ""
+
+#: templates/admin-tab-general.php:99
+msgid "Search Page Layout with Posts"
+msgstr ""
+
+#: templates/admin-tab-general.php:100
+msgid "Display posts with products using theme search results layout.<br>Usefull if you want to display posts with products.<br>By default if 'Search in Products' option selected only products displays using WooCommerce search results layout"
+msgstr ""
+
+#: templates/admin-tab-general.php:106
+msgid "Accent Words on Search Page"
+msgstr ""
+
+#: templates/admin-tab-general.php:107
+msgid "Accent searchable words on search page. Works only if \"Default Output on Search Page\" option is disabled."
+msgstr ""
+
+#: templates/admin-tab-general.php:113
+msgid "Multiple Word Search"
+msgstr ""
+
+#: templates/admin-tab-general.php:114
+msgid "Enable multiple word search."
+msgstr ""
+
+#: templates/admin-tab-general.php:117
+msgid "No"
+msgstr ""
+
+#: templates/admin-tab-general.php:118
+msgid "\"alpha\" OR \"beta\""
+msgstr ""
+
+#: templates/admin-tab-general.php:119
+msgid "\"alpha\" AND \"beta\""
+msgstr ""
+
+#: templates/admin-tab-general.php:125
+msgid "Exclude \"Out of stock\""
+msgstr ""
+
+#: templates/admin-tab-general.php:126
+msgid "Exclude \"Out of stock\" products from results"
+msgstr ""
+
+#: templates/admin-tab-general.php:132
+msgid "Visibility of Variable Products"
+msgstr ""
+
+#: templates/admin-tab-general.php:133
+msgid "Select visibility of variable products and variations"
+msgstr ""
+
+#: templates/admin-tab-general.php:138
+msgid "Enable Transient"
+msgstr ""
+
+#: templates/admin-tab-general.php:139
+msgid "Save query results in a transient"
+msgstr ""
+
+#: templates/admin-tab-general.php:145
+msgid "SKU Search Top Priority"
+msgstr ""
+
+#: templates/admin-tab-general.php:146
+msgid "Search by SKU first if this option is checked and if request is numeric"
+msgstr ""
+
+#: templates/admin-tab-general.php:152
+msgid "Skip Punctuation"
+msgstr ""
+
+#: templates/admin-tab-general.php:153
+msgid "Skip punctuation in the search string"
+msgstr ""
+
+#: templates/admin-tab-general.php:159
+msgid "Disable AJAX"
+msgstr ""
+
+#: templates/admin-tab-general.php:160
+msgid "Disable AJAX functionality (results popup)"
+msgstr ""
+
+#: templates/admin-tab-general.php:166
+msgid "Set Product slug"
+msgstr ""
+
+#: templates/admin-tab-general.php:167
+msgid "Set slug for WooCommerce Product type. Uses in \"view all\" link \"&search_id=1&post_type=product\""
+msgstr ""
+
+#: templates/admin-tab-layout.php:9
+msgid "Display Image"
+msgstr ""
+
+#: templates/admin-tab-layout.php:10
+msgid "Display featured image in results output"
+msgstr ""
+
+#: templates/admin-tab-layout.php:16
+msgid "Variation Image Fallback"
+msgstr ""
+
+#: templates/admin-tab-layout.php:17
+msgid "Display featured image of the parent variable product if variation does not have a thumbnail"
+msgstr ""
+
+#: templates/admin-tab-layout.php:22
+msgid "Image Size"
+msgstr ""
+
+#: templates/admin-tab-layout.php:23
+msgid "Search results featured image size (px)"
+msgstr ""
+
+#: templates/admin-tab-layout.php:29
+msgid "Display Excerpt"
+msgstr ""
+
+#: templates/admin-tab-layout.php:30
+msgid "Display excerpt in results output"
+msgstr ""
+
+#: templates/admin-tab-layout.php:36
+msgid "Display Category"
+msgstr ""
+
+#: templates/admin-tab-layout.php:37
+msgid "Display product / post category"
+msgstr ""
+
+#: templates/admin-tab-layout.php:43
+msgid "Display Price"
+msgstr ""
+
+#: templates/admin-tab-layout.php:44
+msgid "Display product price"
+msgstr ""
+
+#: templates/admin-tab-layout.php:50
+msgid "Display SKU"
+msgstr ""
+
+#: templates/admin-tab-layout.php:51
+msgid "Display product SKU"
+msgstr ""
+
+#: templates/admin-tab-layout.php:57
+msgid "Display \"Out of stock\" Label"
+msgstr ""
+
+#: templates/admin-tab-layout.php:58
+msgid "Display \"Out of stock\" label if product is not in stock"
+msgstr ""
+
+#: templates/admin-tab-layout.php:63
+msgid "Display \"Sale\" Label"
+msgstr ""
+
+#: templates/admin-tab-layout.php:64
+msgid "Display \"Sale\" label for product"
+msgstr ""
+
+#: templates/admin-tab-layout.php:69
+msgid "Display \"Featured\" Label"
+msgstr ""
+
+#: templates/admin-tab-layout.php:70
+msgid "Display \"Featured\" label for product"
+msgstr ""
+
+#: templates/admin-tab-layout.php:75
+msgid "Display \"Add to Cart\" Button"
+msgstr ""
+
+#: templates/admin-tab-layout.php:76
+msgid "Display \"Add to Cart\" Button for product"
+msgstr ""
+
+#: templates/admin-tab-layout.php:81
+msgid "Excerpt Position"
+msgstr ""
+
+#: templates/admin-tab-layout.php:82
+msgid "Excerpt position in results popup"
+msgstr ""
+
+#: templates/admin-tab-layout.php:85
+msgid "Below image"
+msgstr ""
+
+#: templates/admin-tab-layout.php:86
+msgid "Below title"
+msgstr ""
+
+#: templates/admin-tab-layout.php:87
+msgid "Below price and SKU"
+msgstr ""
+
+#: templates/admin-tab-spellcheck.php:12
+#: templates/admin-tab-stopwords.php:12
+msgid "Applies only to the current widget."
+msgstr ""
+
+#: templates/admin-tab-styling.php:7
+msgid "Input Field"
+msgstr ""
+
+#: templates/admin-tab-styling.php:12
+msgid "Rounded border"
+msgstr ""
+
+#: templates/admin-tab-styling.php:13
+msgid "Display search field with rounded border"
+msgstr ""
+
+#: templates/admin-tab-styling.php:19
+#: templates/admin-tab-styling.php:76
+msgid "Border Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:20
+msgid "Search field border color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:26
+msgid "Border Width, px"
+msgstr ""
+
+#: templates/admin-tab-styling.php:27
+msgid "Search field border width in pixels"
+msgstr ""
+
+#: templates/admin-tab-styling.php:33
+msgid "Text Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:34
+msgid "Search field text color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:40
+#: templates/admin-tab-styling.php:83
+msgid "Background Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:41
+msgid "Search field background color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:47
+msgid "Icon Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:48
+msgid "Search field icon color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:54
+msgid "Icon Background"
+msgstr ""
+
+#: templates/admin-tab-styling.php:55
+msgid "Search field icon background"
+msgstr ""
+
+#: templates/admin-tab-styling.php:64
+msgid "Loader"
+msgstr ""
+
+#: templates/admin-tab-styling.php:65
+msgid "Select loader"
+msgstr ""
+
+#: templates/admin-tab-styling.php:71
+msgid "Results Popup Elements"
+msgstr ""
+
+#: templates/admin-tab-styling.php:77
+msgid "Popup border color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:84
+msgid "Popup background color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:90
+msgid "Title Text Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:91
+msgid "Title text color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:97
+msgid "Excerpt Text Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:98
+msgid "Excerpt text color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:104
+msgid "\"View all\" Link Text Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:105
+msgid "\"View all\" link text color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:111
+msgid "\"View all\" Link Text Background"
+msgstr ""
+
+#: templates/admin-tab-styling.php:112
+msgid "\"View all\" link text background in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:118
+msgid "Category Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:119
+msgid "Category text color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:124
+msgid "Product Elements"
+msgstr ""
+
+#: templates/admin-tab-styling.php:129
+msgid "Price Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:130
+msgid "Price text color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:136
+msgid "\"Out of stock\" Label Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:137
+msgid "\"Out of stock\" label text color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:142
+msgid "\"Out of stock\" Label Background Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:143
+msgid "\"Out of stock\" label background color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:148
+msgid "\"Sale\" Label Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:149
+msgid "\"Sale\" label text color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:154
+msgid "\"Sale\" Label Background Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:155
+msgid "\"Sale\" label background color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:160
+msgid "\"Featured\" Label Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:161
+msgid "\"Featured\" label text color in results popup"
+msgstr ""
+
+#: templates/admin-tab-styling.php:166
+msgid "\"Featured\" Label Background Color"
+msgstr ""
+
+#: templates/admin-tab-styling.php:167
+msgid "\"Featured\" label background color in results popup"
+msgstr ""
+
+#: templates/promo/promo-banners.php:27
+msgid "Get Premium Version of Smart Search"
+msgstr ""

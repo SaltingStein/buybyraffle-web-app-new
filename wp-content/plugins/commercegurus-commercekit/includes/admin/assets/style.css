@@ -1,0 +1,56 @@
+.cg-shiphero-meta-container {
+    display: flex;
+}
+
+#shiphero-order-meta, #shiphero-returns-meta {
+	flex: 1;
+}
+
+#shiphero-order-meta {
+    margin-right: 20px;
+}
+
+#shiphero-returns-meta .note_content {
+	background-color: #fff;
+}
+
+.rma-id {
+    font-size: 16px;
+    text-align: center;
+    display: block;
+    padding: 20px;
+    font-weight: 500;
+}
+
+.rma-summary {
+    padding: 20px;
+}
+
+.rma_line_items {
+    padding: 20px;
+}
+
+.cg-shiphero-data-link {
+	display: block;
+    font-weight: bold;
+    padding: 12px;
+    text-decoration: none;
+    vertical-align: middle;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    margin: 0 50px;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.cg-shiphero-data-logo {
+    display: inline-block;
+    margin: -4px 15px 0 0;
+    vertical-align: middle;
+    width: 20px;
+}
+
+.flright {
+	float: right;
+}
