@@ -44,7 +44,7 @@ class BuyByRaffleProductTagCreateHandler {
         try {
             $this->insert_tags();
         } catch (Exception $e) {
-            error_log("Caught exception: " . $e->getMessage());
+            error_log("Caught exception in create_product_tags of BuyByRaffleProductTagCreateHandler class: " . $e->getMessage());
             throw $e;
         }
     }

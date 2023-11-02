@@ -5,7 +5,7 @@
  *
  * This class is responsible for managing ticket entries in the `buybyraffle_tickets` table.
  * It hooks into WooCommerce's order completion action to add new raffle tickets for bait products purchase.
- *
+ * TODO: When an order status is changed, then the status in the wp_buybyraffle_tickets table shall be changed to 0 
  * @author Terungwa
  */
 class BuyByRaffleRaffleTicketHandler {
@@ -21,7 +21,7 @@ class BuyByRaffleRaffleTicketHandler {
 
     public function update_buybyraffle_tickets($order_id) {
         global $wpdb;
-
+    
         try {
             $order = wc_get_order($order_id);
             if (!$order) {
@@ -33,25 +33,36 @@ class BuyByRaffleRaffleTicketHandler {
             $existing_entry = $wpdb->get_row(
                 $wpdb->prepare(
                     "SELECT * FROM {$wpdb->prefix}buybyraffle_tickets WHERE ticket_id = %d AND user_id = %d",
-                       $order_id,
-                       $user_id
+                    $order_id,
+                    $user_id
                 )
             );
     
+            // If an existing entry with status 2 is found, throw a duplicate exception
+            if ($existing_entry && (int)$existing_entry->status === 2) {
+                throw new Exception("Attempt to modify a drawn ticket for ticket_id: {$order_id} and user_id: {$user_id}. Operation not permitted.");
+            }
+    
+            // If an existing entry is found but not with status 2, log it and return without inserting
             if ($existing_entry) {
-                error_log("Duplicate entry detected for ticket_id: {$order_id} and user_id: {$user_id}. Skipping insert.");
+                error_log("Existing entry detected for ticket_id: {$order_id} and user_id: {$user_id} with status: {$existing_entry->status}. Skipping insert.");
                 return;
             }
+    
             // Loop through all the products in the order
             foreach ($order->get_items() as $item_id => $item_data) {
                 $product = $item_data->get_product();
+                if (!$product) {
+                    error_log("Product for item {$item_id} in order {$order_id} could not be loaded.");
+                    continue; // Skip to the next item
+                }
                 $product_id = $product->get_id(); // Get the product ID
                 // Check if the product is a bait product
                 if ($this->is_bait_product($product_id)) {
                     // Prepare data
                     $data = array(
                         'ticket_id' => $order_id,
-                        'raffle_id' => $product_id,
+                        'raffle_cycle_id' => $product_id,
                         'user_id' => $user_id,
                         'draw_type' => 'primary', // Set this according to your logic
                         'created_date' => current_time('mysql'),
@@ -68,9 +79,8 @@ class BuyByRaffleRaffleTicketHandler {
                     if (!$insert_result) {
                         throw new Exception("Failed to insert ticket for Order ID {$order_id} and Product ID {$product_id}.");
                     }
-                }else{
-                    
-                    throw new Exception("Product ID {$product} is not a bait product.");
+                } else {
+                    throw new Exception("Product ID {$product_id} is not a bait product.");
                 }
             }
         } catch (Exception $e) {
@@ -78,6 +88,7 @@ class BuyByRaffleRaffleTicketHandler {
             error_log("Caught exception in update_buybyraffle_tickets: " . $e->getMessage());
         }
     }
+    
     
 
 

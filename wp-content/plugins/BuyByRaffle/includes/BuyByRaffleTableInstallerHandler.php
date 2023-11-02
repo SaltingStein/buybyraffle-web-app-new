@@ -98,6 +98,7 @@ class BuyByRaffleTableInstallerHandler {
                 `product_id` mediumint NOT NULL COMMENT 'This is the product ID',
                 `user_id` mediumint NOT NULL,
                 `draw_type` enum('primary','secondary') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'primary',
+                `status` tinyint NOT NULL DEFAULT 1 COMMENT '0: order reverted, 1: completed, 2: drawn in raffle',
                 `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`tid`),

@@ -96,7 +96,7 @@ class BuyByRaffleProductCustomTabHandler {
             update_post_meta($post_id, 'hero_product_id', esc_attr($hero_product_id));
 
         } catch (Exception $e) {
-            error_log("Caught exception in saveCustomFieldForHero: " . $e->getMessage());
+            error_log("Caught exception in saveCustomFieldForHero in BuyByRaffleProductCustomTabHandler class: " . $e->getMessage());
         }
     }
 

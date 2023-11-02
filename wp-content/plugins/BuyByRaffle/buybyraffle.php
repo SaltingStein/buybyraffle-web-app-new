@@ -18,7 +18,7 @@ if (!defined('WPINC')) {
 
 
 // Define plugin version
-define('BUYBYRAFFLE_VERSION', '3.11');
+define('BUYBYRAFFLE_VERSION', '3.93');
 
 // Include the autoloader
 require_once(plugin_dir_path(__FILE__) . 'autoloader.php');
@@ -33,8 +33,20 @@ function enqueue_admin_scripts() {
             BUYBYRAFFLE_VERSION,
             true
         );
+
+        wp_localize_script(
+            'buybyraffle-custom-script',
+            'my_ajax_object',
+            array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                // generate a nonce with a unique identifier of your choice, like 'my_ajax_nonce'
+                'nonce'    => wp_create_nonce('my_ajax_nonce') 
+            )
+        );
     }
 }
+add_action('admin_enqueue_scripts', 'enqueue_admin_scripts');
+
 class BuyByRaffle {
     public function __construct() {
         // Set the default timezone
@@ -43,20 +55,25 @@ class BuyByRaffle {
         add_action('admin_enqueue_scripts', 'enqueue_admin_scripts');
         // this runs and creates all required custom Database tables upon plugin activation
         register_activation_hook(__FILE__, array('BuyByRaffleTableInstallerHandler', 'install'));
-        new BuyByRaffleProductCustomTabHandler();
+        //new BuyByRaffleProductCustomTabHandler();
 
         // this will create the BuyByRaffle Product tags with the terms: Bait and Hero.
         new BuyByRaffleProductTagCreateHandler();
         register_activation_hook(__FILE__, array('BuyByRaffleProductTagCreateHandler', 'install'));
 
-
         // Initialize the BuyByRaffleHeroProductHandler to handle Hero products
         new BuyByRaffleHeroProductHandler();
+        
+        // Instantiate the BuyByRaffleOrderStatusManager
+        new BuyByRaffleOrderStatusManager();
+
+         // When you create a new instance of the class, the constructor will automatically add the action hook.
+        new BuyByRaffleDrawScheduler();
 
         // Instantiate the class to start listening for events. 
         // This updates a raffle to running when a product with the term bait is created.
-        
         new BuyByRaffleBaitHeroAssociationHandler();
+        
         // add the winners to the winners table
         new BuyByRaffleWinnerHandler();
 

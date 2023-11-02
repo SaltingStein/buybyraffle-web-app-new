@@ -18,13 +18,223 @@ class BuyByRaffleHeroProductHandler {
         add_filter('woocommerce_is_purchasable', array($this, 'make_non_purchasable'), 10, 2);
 
         // Registers the add_hero_product method to the save_post action hook.
-        add_action('save_post_product', array($this, 'add_hero_product'), 10, 3);
+        add_action('save_post_product', array($this, 'add_hero_product'), 20, 3); // Priority 20
+        add_action("save_post_product", array($this, "save_bbr_config_custom_fields"), 10, 3); // Priority 10
+        //add_action('woocommerce_product_data_panels', 'bbr_config_product_data_fields');
+        add_action('woocommerce_product_data_panels', array($this, 'bbr_config_product_data_fields'));
+
+        //add_filter('woocommerce_product_data_tabs', 'add_bbr_config_product_data_tab');
+        add_filter('woocommerce_product_data_tabs', array($this, 'add_bbr_config_product_data_tab'));
+
+        add_action('save_post_product', array($this, 'associate_baits_with_hero'), 20, 3);
 
         // Prevent deletion of Hero products with certain statuses
         add_action('before_delete_post', array($this, 'prevent_hero_deletion'));
-    }
 
-    /**
+        //add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+        add_action('wp_ajax_fetch_hero_products', array($this, 'fetch_hero_products_ajax_handler'));
+        
+
+    }
+    
+    public function add_bbr_config_product_data_tab($product_data_tabs) {
+        $product_data_tabs['bbr_config_tab'] = array(
+            'label' => __('BBR Config', 'your-domain'),
+            'target' => 'bbr_config_product_data',
+            'class' => array(),
+            'priority' => 21,
+        );
+        return $product_data_tabs;
+    }
+    public function save_bbr_config_custom_fields($post_id) {
+        // At the start of save_bbr_config_custom_fields
+        // At the start of save_bbr_config_custom_fields
+        // error_log('POST Data: ' . print_r($_POST, true));
+
+
+        // Prevent execution during WordPress's auto-save routine
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+        
+        // Verify the nonce to ensure the request originated from the correct screen
+        if (!isset($_POST['bbr_config_nonce']) || !wp_verify_nonce($_POST['bbr_config_nonce'], 'bbr_config_nonce_action')) {
+            error_log("Nonce verification failed in save_bbr_config_custom_fields.");
+            return;
+        }
+        
+        // Check the user's permissions
+        if (!current_user_can('edit_post', $post_id)) {
+            error_log("User lacks permission in save_bbr_config_custom_fields.");
+            return;
+        }
+        
+        try {
+            // Sanitize and save the custom fields using the existing meta keys
+            if (isset($_POST['product-tag'])) {
+                $tag = sanitize_text_field($_POST['product-tag']);
+                update_post_meta($post_id, 'product-tag', $tag);
+            }
+            
+               // Ensure that the 'associated_hero_id' is present when 'bait' is selected
+            if ($tag === 'bait') {
+                if (isset($_POST['associated_hero_id'])) {
+                    $hero_id = intval($_POST['associated_hero_id']);
+                    if ($hero_id <= 0) {
+                        throw new Exception('Invalid Hero Product ID provided.');
+                    }
+                    update_post_meta($post_id, 'associated_hero_id', $hero_id);
+                    $this->associate_baits_with_hero($post_id, $hero_id);
+                } else {
+                    throw new Exception('Hero Product ID must be selected when "bait" tag is selected.');
+                }
+            } elseif ($tag === 'hero') {
+                // Handle the hero logic if required, potentially setting $hero_id to $post_id
+                $hero_id = $post_id;
+                update_post_meta($post_id, 'associated_hero_id', $hero_id);
+            }elseif ($tag === 'solo') {
+                // Ensure no association for 'solo' tags
+                delete_post_meta($post_id, 'associated_hero_id');
+            }
+        } catch (Exception $e) {
+            error_log("Exception caught in save_bbr_config_custom_fields: " . $e->getMessage());
+            add_action('admin_notices', function() use ($e) {
+                echo '<div class="notice notice-error is-dismissible">';
+                echo "<p>Error: " . esc_html($e->getMessage()) . "</p>";
+                echo '</div>';
+            });
+            // Don't throw a new exception here. Handle the error gracefully.
+        }
+    }
+    
+    public function bbr_config_product_data_fields() {
+        global $post;
+    
+        // Check if $post is a valid object and of type WP_Post
+        if (!is_object($post) || !is_a($post, 'WP_Post')) {
+            error_log('Invalid post object in BuyByRaffleHeroProductHandler.');
+            // Handle the error appropriately, possibly with a user-facing error message or by exiting the function
+            echo '<div class="error"><p>Invalid post object. Please make sure you are editing a valid product.</p></div>';
+            return; // Exit the function if $post is not a valid WP_Post object
+        }
+    
+        // Fetch the current values if $post is valid
+        $current_tag = get_post_meta($post->ID, 'product-tag', true);
+        $current_hero_id = get_post_meta($post->ID, 'associated_hero_id', true);
+    
+        // Get hero products for the dropdown
+        $hero_products = $this->get_hero_products();
+        ?>
+        <div id="bbr_config_product_data" class="panel woocommerce_options_panel">
+            <div class='options_group'>
+                <?php
+                // Inside the bbr_config_product_data_fields method, just before or after the select fields
+                wp_nonce_field('bbr_config_nonce_action', 'bbr_config_nonce');
+
+                woocommerce_wp_select(array(
+                    'id' => 'product-tag',
+                    'label' => __('Product Tag', 'your-domain'),
+                    'options' => array(
+                        '' => 'Select a tag',
+                        'hero' => 'Hero',
+                        'bait' => 'Bait',
+                        'solo' => 'Solo' // Add the new 'solo' option
+                    ),
+                    'value' => $current_tag,
+                    'custom_attributes' => array('required' => 'required'), // Ensure the select is always required
+                ));
+    
+                woocommerce_wp_select(array(
+                    'id' => 'associated_hero_id',
+                    'label' => __('Select Hero Product', 'your-domain'),
+                    'options' => array_reduce($hero_products, function ($options, $hero_product) {
+                        // Use array syntax instead of object property syntax
+                        $options[$hero_product['ID']] = $hero_product['name']; // or $hero_product['post_title'] if that is the correct index
+                        return $options;
+                    }, array('' => 'Select a Hero Product')),
+                    'value' => $current_hero_id,
+                ));
+
+                ?>
+            </div>
+        </div>
+        <?php
+    }
+    
+    
+    public function fetch_hero_products_ajax_handler() {
+        global $wpdb;
+        check_ajax_referer('my_ajax_nonce', 'nonce'); // Check nonce for security
+    
+        // Prepare SQL with JOIN to get the product names from wp_posts table
+        $query = "
+            SELECT h.product_id, h.hero_id, p.post_title AS product_name
+            FROM wp_buybyraffle_hero_products h
+            JOIN wp_posts p ON h.product_id = p.ID
+            WHERE h.status = 'open' AND p.post_status = 'publish' AND p.post_type = 'product'
+        ";
+        
+        $hero_products = $wpdb->get_results($query);
+        
+        // Check if the products were found
+        if(!empty($hero_products)) {
+            wp_send_json_success($hero_products);
+        } else {
+            error_log('No hero products found.');
+            wp_send_json_error('No hero products found.');
+           
+        }
+    }
+    
+    
+    
+    
+    public function get_hero_products() {
+        global $wpdb;
+        // Define the table name
+        $table_name = $wpdb->prefix . 'buybyraffle_hero_products';
+    
+        // Write a SQL query to get all hero IDs where the status is 'active'
+        $sql = $wpdb->prepare("SELECT DISTINCT hero_id FROM $table_name WHERE status = %s", 'open');
+    
+        // Execute the query and get the results
+        $hero_ids = $wpdb->get_col($sql);
+        //error_log(print_r($hero_ids, true));
+        // Check for any database errors
+        if ($wpdb->last_error) {
+            error_log("Database error: " . $wpdb->last_error);
+            return array();
+        }
+    
+        // If hero IDs are found, get the corresponding post objects
+        if (!empty($hero_ids)) {
+            $args = array(
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'post__in' => $hero_ids,
+                'posts_per_page' => -1, // Get all hero products
+            );
+    
+            $query = new WP_Query($args);
+    
+            $hero_products = array();
+            if ($query->have_posts()) {
+                while ($query->have_posts()) {
+                    $query->the_post();
+                    $hero_products[] = array(
+                        'ID' => get_the_ID(),
+                        'name' => get_the_title(),
+                        // Add other product fields as needed
+                    );
+                }
+                wp_reset_postdata();
+            }
+            return $hero_products;
+        } else {
+            // No hero products found
+            return array();
+        }
+    }
+    
+   /**
      * Prevent Deletion of Hero Products
      * 
      * @param int $post_id The ID of the post being deleted.
@@ -57,13 +267,19 @@ class BuyByRaffleHeroProductHandler {
      * @author Terungwa
      */
     public function add_hero_product($post_ID, $post, $update) {
+        // If it's not a product or if it's a WordPress autosave, return early
+        if ($post->post_type !== 'product' || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)) {
+            return $post_ID;
+        }
+
         try {
             global $wpdb;
             $table_name = $wpdb->prefix . 'buybyraffle_hero_products';
-            $terms = get_the_terms($post_ID, 'pa_buybyraffle-product-group');
+            // Using 'product_tag' taxonomy to check for 'Hero' tag
+            $terms = get_the_terms($post_ID, 'product_tag');
 
             if (is_wp_error($terms)) {
-                throw new Exception("Error retrieving the 'Hero' term: " . $terms->get_error_message());
+                throw new Exception("Error retrieving the 'Hero' tag: " . $terms->get_error_message());
             }
 
             $existing_product = $wpdb->get_var("SELECT status FROM {$table_name} WHERE product_id = $post_ID");
@@ -71,13 +287,12 @@ class BuyByRaffleHeroProductHandler {
             $is_hero = false;
             if (is_array($terms)) {
                 foreach ($terms as $term) {
-                    if ($term->slug === 'hero') {
+                    if ($term->name === 'Hero') {
                         $is_hero = true;
                         break;
                     }
                 }
             }
-
             // Prevent Hero tag change if the status is 'running' or 'redeemed'
             if ($existing_product && in_array($existing_product, ['running']) && !$is_hero) {
                 add_action('admin_notices', function() {
@@ -87,7 +302,6 @@ class BuyByRaffleHeroProductHandler {
                 });
                 return; // Exit the function early
             }
-
             // Get the highest raffle_cycle_id and increment it by 1
             $highest_cycle_id = $wpdb->get_var("SELECT MAX(raffle_cycle_id) FROM {$table_name}");
             $new_cycle_id = is_null($highest_cycle_id) ? 1 : $highest_cycle_id + 1;
@@ -107,6 +321,10 @@ class BuyByRaffleHeroProductHandler {
                 } else {
                     $wpdb->update($table_name, $data, array('product_id' => $post_ID), $format, array('%d'));
                 }
+                if ($wpdb->last_error) {
+                    error_log("Database Error: " . $wpdb->last_error);
+                }
+                
             }
 
         } catch (Exception $e) {
@@ -117,6 +335,7 @@ class BuyByRaffleHeroProductHandler {
 
     /**
      * Remove Hero products from archives and search.
+     * 
      * @param WP_Query $query WordPress Query object.
      */
     public function remove_from_archives_and_search($query) {
@@ -135,6 +354,7 @@ class BuyByRaffleHeroProductHandler {
 
     /**
      * Make Hero products non-purchasable.
+     * 
      * @param bool       $purchasable Whether the product is purchasable.
      * @param WC_Product $product     WooCommerce Product object.
      * @return bool
@@ -150,4 +370,110 @@ class BuyByRaffleHeroProductHandler {
         }
         return $purchasable;
     }
+
+    /**
+     * Update Bait-Hero Association
+     *
+     * This method is called whenever a post is saved. It checks if the post is of type 'product',
+     * and updates the bait-hero association accordingly.
+     *
+     * @param int     $post_ID The ID of the post being saved.
+     * @param WP_Post $post    The post object.
+     * @param bool    $update  Whether this is an existing post being updated or not.
+     */
+    public function associate_baits_with_hero($post_ID, $hero_product_id) {
+        global $wpdb;
+        try { 
+            $post = get_post($post_ID); // Get the post object to check its status.
+            if (!$post || $post->post_status === 'auto-draft') {
+                // It's an auto-draft, so we should stop further execution.
+                return;
+            }
+            
+            // Check if the product is a bait product
+            if ($this->is_bait_product($post_ID)) {
+                //throw new Exception("Product ID: $post_ID is not a bait product, and therefore cant be added to the wp_buybyraffle_bait_hero_association table.");
+                 // Validate the input field when "bait" is selected
+            
+                //$hero_product_id = $_POST['hero_product_id'] ?? '';
+                if (empty($hero_product_id)  || !isset($hero_product_id)) {
+                    // Add a WordPress admin notice
+                    add_action('admin_notices', function() {
+                        echo '<div class="notice notice-error is-dismissible">';
+                        echo '<p>Error: You must fill in the Hero Product ID field when selecting the "bait" attribute.</p>';
+                        echo '</div>';
+                    });
+                    
+                    // Throw an exception to halt the save process
+                    throw new Exception('Hero Product ID must be selected when "bait" tag is selected.');
+                }
+            
+            }
+
+            // Assuming the associated hero product ID is stored in post meta with key 'associated_hero_id'
+            $hero_id = get_post_meta($post_ID, 'associated_hero_id', true);
+            if (empty($hero_id)) {
+                throw new Exception("Hero product ID is not set for this bait product: $post_ID");
+            }
+            // Check if the hero product status is 'open'
+            //$hero_status = $wpdb->get_var("SELECT status FROM wp_buybyraffle_hero_products WHERE hero_id = $hero_id");
+            $hero_status = $wpdb->get_var("SELECT status FROM wp_buybyraffle_hero_products WHERE hero_id = $hero_id AND status = 'open'");
+
+            if ($hero_status === null) {
+                // Log or handle the case where hero product is not found
+                throw new Exception("No hero product was associated to this bait product or you attempted to use one that is not open for association.");
+            } 
+
+            // Check if an association already exists
+            $existing_association = $wpdb->get_var("SELECT id FROM wp_buybyraffle_bait_hero_association WHERE bait_id = $post_ID AND hero_id = $hero_id");
+
+            if (null === $existing_association) {
+                // Insert new association
+                $wpdb->insert(
+                    'wp_buybyraffle_bait_hero_association',
+                    array(
+                        'bait_id' => $post_ID,
+                        'hero_id' => $hero_id,
+                        'updated_date' => current_time('mysql')
+                    ),
+                    array('%d', '%d', '%s')
+                );
+            } else {
+                // Update existing association
+                $wpdb->update(
+                    'wp_buybyraffle_bait_hero_association',
+                    array('updated_date' => current_time('mysql')),
+                    array('id' => $existing_association),
+                    array('%s'),
+                    array('%d')
+                );
+            }
+        } catch (Exception $e) {
+            error_log("Caught exception in associate_baits_with_hero: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check if a Product is a Bait Product
+     *
+     * This internal method checks if a given product ID represents a bait product.
+     *
+     * @param int $product_id The ID of the product to check.
+     * @return bool True if the product is a bait product, false otherwise.
+     */
+        private function is_bait_product(int $product_id): bool {
+        try {
+            $tags = wp_get_post_tags($product_id);
+            foreach ($tags as $tag) {
+                if ('bait' === $tag->name) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception $e) {
+            error_log("Caught exception in is_bait_product: " . $e->getMessage());
+            throw $e;
+        }
+    }
+    
 }
