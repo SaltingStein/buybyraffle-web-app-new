@@ -3,7 +3,7 @@
  * Plugin Name: BuyByRaffle
  * Plugin URI: https://saltingsteing.com/
  * Description: An innovative eCommerce platform integrating raffles into the shopping experience.
- * Version: 1.0.0
+ * Version: 2.0.0
  * Author: SGS Team
  * Author URI: https://saltingsteing.com/
  * License: GPL-2.0+

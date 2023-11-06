@@ -73,10 +73,10 @@ class BuyByRaffleHeroProductHandler {
         }
         
         // Verify the nonce to ensure the request originated from the correct screen
-        if (!isset($_POST['bbr_config_nonce']) || !wp_verify_nonce($_POST['bbr_config_nonce'], 'bbr_config_nonce_action')) {
-            error_log("Nonce verification failed in save_bbr_config_custom_fields.");
-            return;
-        }        
+        // if (!isset($_POST['bbr_config_nonce']) || !wp_verify_nonce($_POST['bbr_config_nonce'], 'bbr_config_nonce_action')) {
+        //     error_log("Nonce verification failed in save_bbr_config_custom_fields.");
+        //     return;
+        // }        
        
         // Check the user's permissions
         if (!current_user_can('edit_post', $post_id)) {
