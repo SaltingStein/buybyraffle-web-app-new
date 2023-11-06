@@ -24,7 +24,17 @@ function display_batch_details() {
     echo '<h2>Batch Details</h2>';
     echo '<table class="wp-list-table widefat fixed striped">';
     echo '<thead>
-            <tr><th>ID</th><th>Batch ID</th><th>Created By</th><th>Denomination</th><th>Number of Pins</th><th>Status</th><th>Date Created</th><th>Action</th></tr></thead>';
+            <tr>
+                <th>ID</th>
+                <th>Batch ID</th>
+                <th>Created By</th>
+                <th>Denomination</th>
+                <th>Number of Pins</th>
+                <th>Status</th>
+                <th>Date Created</th>
+                <th>Action</th>
+            </tr>
+          </thead>';
     echo '<tbody>';
     
     foreach ($batch_data as $batch) {
@@ -60,8 +70,6 @@ function display_batch_details() {
                 statusCell.text('active');
                 $(this).text('active');
             }
-            // Implement AJAX logic here to update the batch status in the database
-            // You can use the batchId to identify and update the specific batch
         });
     });
     </script>

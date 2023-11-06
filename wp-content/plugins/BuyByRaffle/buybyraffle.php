@@ -18,7 +18,7 @@ if (!defined('WPINC')) {
 
 
 // Define plugin version
-define('BUYBYRAFFLE_VERSION', '3.93');
+define('BUYBYRAFFLE_VERSION', '3.491');
 
 // Include the autoloader
 require_once(plugin_dir_path(__FILE__) . 'autoloader.php');
@@ -46,8 +46,36 @@ function enqueue_admin_scripts() {
     }
 }
 add_action('admin_enqueue_scripts', 'enqueue_admin_scripts');
+/**
+ * Deactivation hook for resetting the BuyByRaffle plugin version.
+ *
+ * This function is called when the plugin is deactivated. It checks if the server's IP
+ * address matches the localhost or a predefined staging server IP. If a match is found,
+ * it resets the 'BUYBYRAFFLE_VERSION' option in the WordPress database to ensure
+ * that the environment is clean for the next activation.
+ *
+ * @global array $_SERVER Super global server array containing information about server environment.
+ */
+function buybyraffle_deactivation() {
+    // Define allowed IP addresses for the localhost and staging environment.
+    $allowed_ips = ['127.0.0.1', '::1', '138.68.91.147']; // Localhost IPs and staging IP
+
+    // Get the current server IP address and HTTP host from the server environment.
+    $current_ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    $current_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+
+    // Check if the current IP or host matches any of the allowed environments.
+    if (in_array($current_ip, $allowed_ips) || strpos($current_host, 'localhost') !== false) {
+        // Reset the 'BUYBYRAFFLE_VERSION' option in the database.
+        delete_option("_buybyraffle_version");
+    }
+}
+
+// Register the deactivation hook for the BuyByRaffle plugin.
+register_deactivation_hook(__FILE__, 'buybyraffle_deactivation');
 
 class BuyByRaffle {
+    private $cycleHandler;
     public function __construct() {
         // Set the default timezone
         date_default_timezone_set('Africa/Lagos'); // Set to your desired timezone
@@ -60,9 +88,15 @@ class BuyByRaffle {
         // this will create the BuyByRaffle Product tags with the terms: Bait and Hero.
         new BuyByRaffleProductTagCreateHandler();
         register_activation_hook(__FILE__, array('BuyByRaffleProductTagCreateHandler', 'install'));
+            /**
+             * Registers the plugin activation hook.
+             */
+        register_activation_hook(__FILE__, ['BuyByRaffleRaffleClassMgr', 'init_raffle_classes']);
 
+         // Create and store the instance of BuyByRaffleCycleHandler
+         $this->cycleHandler = new BuyByRaffleCycleHandler();         
         // Initialize the BuyByRaffleHeroProductHandler to handle Hero products
-        new BuyByRaffleHeroProductHandler();
+        new BuyByRaffleHeroProductHandler($this->cycleHandler);
         
         // Instantiate the BuyByRaffleOrderStatusManager
         new BuyByRaffleOrderStatusManager();

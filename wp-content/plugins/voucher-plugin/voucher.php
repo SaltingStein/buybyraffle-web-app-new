@@ -5,6 +5,9 @@ Description: A plugin for generating and managing e-pins.
 Version: 1.0
 Author: Your Name
 */
+if(!function_exists('wp_get_current_user')) {
+    include(ABSPATH . "wp-includes/pluggable.php"); 
+}
 
 require_once plugin_dir_path(__FILE__) . 'PhpSpreadsheet/vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -19,14 +22,14 @@ register_activation_hook(__FILE__, 'epin_plugin_activate');
 
 function epin_plugin_activate() {
     global $wpdb;
-    
+    update_option('pgs_voucher_denomination', '200');
     $batch_table_name = $wpdb->prefix . 'epin_batches';
     $voucher_table_name = $wpdb->prefix . 'epin_vouchers';
 
     $charset_collate = $wpdb->get_charset_collate();
 
     // Create the batch table
-    $batch_table_sql = "CREATE TABLE $batch_table_name (
+    $batch_table_sql = "CREATE TABLE  IF NOT EXISTS $batch_table_name (
         id INT NOT NULL AUTO_INCREMENT,
         batch_id VARCHAR(36) NOT NULL,
         created_by INT NOT NULL,
@@ -40,7 +43,7 @@ function epin_plugin_activate() {
     dbDelta($batch_table_sql);
 
     // Create the voucher table
-    $voucher_table_sql = "CREATE TABLE $voucher_table_name (
+    $voucher_table_sql = "CREATE TABLE  IF NOT EXISTS $voucher_table_name (
         id INT NOT NULL AUTO_INCREMENT,
         voucher_pin VARCHAR(10) NOT NULL,
         batch_id VARCHAR(36) NOT NULL,
@@ -60,9 +63,17 @@ function generate_random_pin() {
 
 // Add a menu item in the admin menu
 function epin_management_menu() {
-    add_menu_page('E-Pin Management', 'E-Pin Management', 'manage_options', 'epin-management', 'epin_management_page');
+    add_menu_page('E-Pin Management', 'E-Pin Management', 'read_post', 'epin-management', 'epin_management_page');
 }
 add_action('admin_menu', 'epin_management_menu');
+
+//Initialise user id
+add_action('init', 'my_custom_function');
+
+function my_custom_function() {
+    $user_id = get_current_user_id();
+    // Use the user ID as needed.
+}
 
 // Create the custom admin page
 function epin_management_page() {
@@ -86,14 +97,16 @@ function epin_management_page() {
 // Process the form submission
 if (isset($_POST['generate_pins'])) {
     global $wpdb;
+    $current_user = wp_get_current_user();
+    $user_id = $current_user->ID;
     $batch_table_name = $wpdb->prefix . 'epin_batches';
     $voucher_table_name = $wpdb->prefix . 'epin_vouchers';
     $num_pins = intval($_POST['num_pins']);
-    $denomination = floatval(get_option('pin_denomination'));
+    $denomination = floatval(get_option('pgs_voucher_denomination'));
     
     // Insert a record in the batch table
     $batch_data = array(
-        'created_by' => get_current_user_id(),
+        'created_by' => $user_id,
         'number_of_pins' => $num_pins,
         'denomination' => $denomination,
         'status' => 'active',
@@ -105,9 +118,9 @@ if (isset($_POST['generate_pins'])) {
 
     // Update the batch with the generated batch ID
     $add_batch_id = $wpdb->update($batch_table_name, array('batch_id' => $batch_id), array('id' => $wpdb->insert_id));
-    if($add_batch_id){
-        echo "<script> alert('Successfully generated. Check your mail for the pins file.');</script>";
-    }
+    // if($add_batch_id){
+    //     echo "<script> alert('Successfully generated. Check your mail for the pins file.');</script>";
+    // }
     // Generate e-pins and insert them into the voucher table
     $pins = array();
     for ($i = 0; $i < $num_pins; $i++) {
@@ -137,12 +150,15 @@ if (isset($_POST['generate_pins'])) {
     $excelWriter->save($file);
 
     $current_user = get_current_user();
-    $to = $current_user->user_email;
+    $to = "dajooe@gmail.com";
     $subject = 'Generated E-Pins';
     $message = 'Attached is your generated E-Pins.';
+    $headers = 'MIME-Version: 1.0' . "\r\n";
+    $headers .= 'From: Your name <info@address.com>' . "\r\n";
+    $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
     $headers = 'Content-Type: text/html; charset=UTF-8';
     $attachments = array($file);
-    mail($to, $subject, $message, $headers, $file);
+    //wp_mail($to, $subject, $message, $headers, $file);
 }
  // Use a library like PHPExcel to create Excel files
  include PGS_VOUCHERS . 'batches-table.php';
