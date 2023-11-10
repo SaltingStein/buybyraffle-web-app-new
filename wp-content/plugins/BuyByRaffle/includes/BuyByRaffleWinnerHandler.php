@@ -11,6 +11,7 @@
  *
  * @author Terungwa
  */
+namespace Sgs\Buybyraffle;
 class BuyByRaffleWinnerHandler {
     
     /**

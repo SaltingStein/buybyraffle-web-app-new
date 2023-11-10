@@ -1,23 +1,25 @@
 <?php
-spl_autoload_register('buybyraffle_autoloader');
+spl_autoload_register(function ($class) {
+    // Define the base directory for the namespace prefix
+    $base_dir = __DIR__ . '/includes/';
 
-function buybyraffle_autoloader($class_name) {
-    if (false !== strpos($class_name, 'BuyByRaffle')) {
-        $base_dir = plugin_dir_path(__FILE__);
-
-        // Define the directory for 'includes'
-        $include_dir = $base_dir . 'includes/';
-
-        // Standard class files at root or other folders
-        $class_file = $base_dir . str_replace('_', DIRECTORY_SEPARATOR, $class_name) . '.php';
-
-        // Class files in 'includes' folder
-        $class_file_includes = $include_dir . str_replace('_', DIRECTORY_SEPARATOR, $class_name) . '.php';
-
-        if (file_exists($class_file)) {
-            require_once $class_file;
-        } elseif (file_exists($class_file_includes)) {
-            require_once $class_file_includes;
-        }
+    // Does the class use the namespace prefix?
+    $len = strlen('BuyByRaffle\\');
+    if (strncmp('BuyByRaffle\\', $class, $len) !== 0) {
+        // No, move to the next registered autoloader
+        return;
     }
-}
+
+    // Get the relative class name
+    $relative_class = substr($class, $len);
+
+    // Replace the namespace prefix with the base directory, replace namespace
+    // separators with directory separators in the relative class name, append
+    // with .php
+    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+
+    // If the file exists, require it
+    if (file_exists($file)) {
+        require $file;
+    }
+});

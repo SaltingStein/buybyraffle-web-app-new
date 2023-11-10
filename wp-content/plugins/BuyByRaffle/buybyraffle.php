@@ -1,31 +1,30 @@
 <?php
 /**
- * Plugin Name: BuyByRaffle
- * Plugin URI: https://saltingsteing.com/
- * Description: An innovative eCommerce platform integrating raffles into the shopping experience.
- * Version: 2.0.0
- * Author: SGS Team
- * Author URI: https://saltingsteing.com/
- * License: GPL-2.0+
- * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain: buybyraffle
- * Domain Path: /languages
+ * BuyByRaffle Plugin File
+ *
+ * This file represents the main plugin file for the BuyByRaffle plugin which
+ * integrates raffles into the WooCommerce shopping experience.
+ *
+ * @package BuyByRaffle
  */
-// If this file is called directly, abort.
-if (!defined('WPINC')) {
-    die;
-}
 
+// Prevent direct file access.
+defined('WPINC') or die;
 
-// Define plugin version
-define('BUYBYRAFFLE_VERSION', '3.491');
+// Define plugin version for easy management of scripts, styles, and other assets.
+define('BUYBYRAFFLE_VERSION', '1.0.0');
 
-// Include the autoloader
-require_once(plugin_dir_path(__FILE__) . 'autoloader.php');
-// Add this function outside your class
+// Include Composer's autoloader to manage dependencies.
+require_once __DIR__ . '/vendor/autoload.php';
+
+/**
+ * Enqueues admin-specific scripts.
+ *
+ * Loads JavaScript for admin interactions, specifically on the 'product' post type screen.
+ */
 function enqueue_admin_scripts() {
     $screen = get_current_screen();
-    if ($screen->id === 'product') {
+    if ('product' === $screen->id) {
         wp_enqueue_script(
             'buybyraffle-custom-script',
             plugin_dir_url(__FILE__) . 'js/scripts.js',
@@ -34,105 +33,121 @@ function enqueue_admin_scripts() {
             true
         );
 
+        // Localize script for AJAX requests, providing the AJAX URL and a nonce for security.
         wp_localize_script(
             'buybyraffle-custom-script',
             'my_ajax_object',
             array(
                 'ajax_url' => admin_url('admin-ajax.php'),
-                // generate a nonce with a unique identifier of your choice, like 'my_ajax_nonce'
-                'nonce'    => wp_create_nonce('my_ajax_nonce') 
+                'nonce'    => wp_create_nonce('my_ajax_nonce')
             )
         );
     }
 }
 add_action('admin_enqueue_scripts', 'enqueue_admin_scripts');
+
 /**
- * Deactivation hook for resetting the BuyByRaffle plugin version.
+ * Resets plugin version upon deactivation.
  *
- * This function is called when the plugin is deactivated. It checks if the server's IP
- * address matches the localhost or a predefined staging server IP. If a match is found,
- * it resets the 'BUYBYRAFFLE_VERSION' option in the WordPress database to ensure
- * that the environment is clean for the next activation.
- *
- * @global array $_SERVER Super global server array containing information about server environment.
+ * This callback is hooked to the deactivation process, resetting the plugin version
+ * in environments that are marked as safe for such operations.
  */
 function buybyraffle_deactivation() {
-    // Define allowed IP addresses for the localhost and staging environment.
-    $allowed_ips = ['127.0.0.1', '::1', '138.68.91.147']; // Localhost IPs and staging IP
+    $allowed_ips = ['127.0.0.1', '::1', '138.68.91.147']; // Localhost and staging IPs.
 
-    // Get the current server IP address and HTTP host from the server environment.
-    $current_ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-    $current_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+    $current_ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $current_host = $_SERVER['HTTP_HOST'] ?? '';
 
-    // Check if the current IP or host matches any of the allowed environments.
-    if (in_array($current_ip, $allowed_ips) || strpos($current_host, 'localhost') !== false) {
-        // Reset the 'BUYBYRAFFLE_VERSION' option in the database.
-        delete_option("_buybyraffle_version");
+    if (in_array($current_ip, $allowed_ips) || false !== strpos($current_host, 'localhost')) {
+        delete_option('BUYBYRAFFLE_VERSION');
     }
 }
-
-// Register the deactivation hook for the BuyByRaffle plugin.
 register_deactivation_hook(__FILE__, 'buybyraffle_deactivation');
 
+/**
+ * Main plugin class
+ *
+ * Initializes the plugin and includes the necessary hooks for operation.
+ */
 class BuyByRaffle {
-    private $cycleHandler;
-    public function __construct() {
-        // Set the default timezone
-        date_default_timezone_set('Africa/Lagos'); // Set to your desired timezone
-        // Add this line to enqueue your script in the admin area
-        add_action('admin_enqueue_scripts', 'enqueue_admin_scripts');
-        // this runs and creates all required custom Database tables upon plugin activation
-        register_activation_hook(__FILE__, array('BuyByRaffleTableInstallerHandler', 'install'));
-        //new BuyByRaffleProductCustomTabHandler();
-
-        // this will create the BuyByRaffle Product tags with the terms: Bait and Hero.
-        new BuyByRaffleProductTagCreateHandler();
-        register_activation_hook(__FILE__, array('BuyByRaffleProductTagCreateHandler', 'install'));
-            /**
-             * Registers the plugin activation hook.
-             */
-        register_activation_hook(__FILE__, ['BuyByRaffleRaffleClassMgr', 'init_raffle_classes']);
-
-         // Create and store the instance of BuyByRaffleCycleHandler
-         $this->cycleHandler = new BuyByRaffleCycleHandler();         
-        // Initialize the BuyByRaffleHeroProductHandler to handle Hero products
-        new BuyByRaffleHeroProductHandler($this->cycleHandler);
-        
-        // Instantiate the BuyByRaffleOrderStatusManager
-        new BuyByRaffleOrderStatusManager();
-
-         // When you create a new instance of the class, the constructor will automatically add the action hook.
-        new BuyByRaffleDrawScheduler();
-
-        // Instantiate the class to start listening for events. 
-        // This updates a raffle to running when a product with the term bait is created.
-        new BuyByRaffleBaitHeroAssociationHandler();
-        
-        // add the winners to the winners table
-        new BuyByRaffleWinnerHandler();
-
-        // generate the raffle tickets foolwowing bait sales 
-        // and add to the buybyraffle_tickets table
-        new BuyByRaffleRaffleTicketHandler();
-
-    }
-    
     /**
-     * Fetch the current date and time in MySQL compatible format.
+     * Handles raffle cycle processes.
+     * 
+     * @var object
+     */
+    private $cycleHandler;
+
+    /**
+     * Constructor.
      *
-     * @return string Current date and time in MySQL date format ('Y-m-d H:i:s').
+     * Sets the default timezone and registers activation hooks for various components.
+     */
+    public function __construct() {
+        // Sets the default timezone for the plugin.
+        date_default_timezone_set('Africa/Lagos');
+
+        // Registers activation hooks for creating custom tables and product tags.
+        $this->register_activation_hooks();
+
+        // Initializes admin handlers if in the admin area and WooCommerce is active.
+        if (is_admin() && $this->is_woocommerce_active()) {
+            $this->initialize_admin_handlers();
+        }
+    }
+
+    /**
+     * Registers activation hooks for the plugin.
+     */
+    private function register_activation_hooks() {
+        // Registers hooks for installing custom tables, product tags, and raffle classes.
+        register_activation_hook(__FILE__, ['\Sgs\Buybyraffle\BuyByRaffleTableInstallerHandler', 'install']);
+        register_activation_hook(__FILE__, ['\Sgs\Buybyraffle\BuyByRaffleProductTagCreateHandler', 'install']);
+        register_activation_hook(__FILE__, ['\Sgs\Buybyraffle\BuyByRaffleRaffleClassMgr', 'init_raffle_classes']);
+    }
+
+    /**
+     * Initializes admin-specific handlers.
+     */
+    private function initialize_admin_handlers() {
+        // Create and store the instance of BuyByRaffleCycleHandler.
+        $this->cycleHandler = new \Sgs\Buybyraffle\BuyByRaffleCycleHandler();
+
+        // Instantiate handlers related to the admin area.
+        new \Sgs\Buybyraffle\BuyByRaffleHeroProductHandler($this->cycleHandler);
+        new \Sgs\Buybyraffle\BuyByRaffleOrderStatusManager();
+        new \Sgs\Buybyraffle\BuyByRaffleDrawScheduler();
+        new \Sgs\Buybyraffle\BuyByRaffleBaitHeroAssociationHandler();
+        new \Sgs\Buybyraffle\BuyByRaffleWinnerHandler();
+        new \Sgs\Buybyraffle\BuyByRaffleRaffleTicketHandler();
+        new \Sgs\Buybyraffle\BuyByRaffleApiDbConnector();
+    }
+
+    /**
+     * Checks if WooCommerce is active.
+     *
+     * @return bool True if WooCommerce is active, false otherwise.
+     */
+    public static function is_woocommerce_active() {
+        return in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')), true);
+    }
+
+    /**
+     * Returns the current date and time in MySQL format.
+     *
+     * @return string Date and time in 'Y-m-d H:i:s' format.
      */
     public static function current_mysql_date() {
         return date('Y-m-d H:i:s');
     }
 }
 
-// Initialize the plugin
-if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+// Initialize the plugin.
+if (is_admin()) {
     new BuyByRaffle();
-}else {
-    // Deactivate the plugin and print an admin notice if WooCommerce is not active
+} 
+
+// Handle plugin deactivation if WooCommerce is not active.
+if (!is_admin() && !BuyByRaffle::is_woocommerce_active()) {
     deactivate_plugins(plugin_basename(__FILE__));
     wp_die(__('This plugin requires WooCommerce to be activated.', 'buybyraffle'));
 }
-

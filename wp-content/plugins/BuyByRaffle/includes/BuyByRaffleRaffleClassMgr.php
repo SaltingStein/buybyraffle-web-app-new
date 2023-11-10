@@ -6,6 +6,7 @@
  * the raffle classes upon plugin activation and provides a method to retrieve
  * a raffle class ID by its name.
  */
+namespace Sgs\Buybyraffle;
 class BuyByRaffleRaffleClassMgr {
 
     /**

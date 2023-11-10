@@ -1,0 +1,19 @@
+{
+    "name": "sgs/buybyraffle",
+    "description": "An innovative eCommerce platform integrating raffles into the shopping experience.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Sgs\\Buybyraffle\\": "includes/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Terungwa",
+            "email": "terungwa@buybyraffle.com" 
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}

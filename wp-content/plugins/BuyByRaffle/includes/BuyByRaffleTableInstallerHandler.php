@@ -7,6 +7,7 @@
  *
  * @author Terungwa
  */
+namespace Sgs\Buybyraffle;
 class BuyByRaffleTableInstallerHandler {
     
     /**
@@ -47,7 +48,25 @@ class BuyByRaffleTableInstallerHandler {
             error_log("Caught exception: " . $e->getMessage());
         }
     }
-
+    private static function create_re_raffle_cycle_table() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+        $table_name = $wpdb->prefix . 're_raffle_cycle';
+    
+        $sql = "CREATE TABLE $table_name (
+            raffle_cycle_id mediumint(9) NOT NULL AUTO_INCREMENT,
+            product_id mediumint(9) NOT NULL COMMENT 'This is the product ID',
+            raffle_type ENUM('Hero', 'Bait', 'Solo') COLLATE utf8mb4_unicode_520_ci,
+            raffle_class_id mediumint(9) NOT NULL,
+            status ENUM('pending', 'ongoing', 'completed', 'stopped') COLLATE utf8mb4_unicode_520_ci DEFAULT 'pending',
+            created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (raffle_cycle_id)
+        ) $charset_collate;";
+    
+        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+        dbDelta( $sql );
+    }
     /**
      * Create Log Table
      *

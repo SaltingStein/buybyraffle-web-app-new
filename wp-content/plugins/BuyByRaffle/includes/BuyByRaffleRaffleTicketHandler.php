@@ -8,6 +8,7 @@
  * TODO: When an order status is changed, then the status in the wp_buybyraffle_tickets table shall be changed to 0 
  * @author Terungwa
  */
+namespace Sgs\Buybyraffle;
 class BuyByRaffleRaffleTicketHandler {
 
     /**

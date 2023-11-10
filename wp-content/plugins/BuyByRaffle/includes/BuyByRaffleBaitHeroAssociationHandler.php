@@ -6,6 +6,7 @@
  *
  * @author Terungwa
  */
+namespace Sgs\Buybyraffle;
 class BuyByRaffleBaitHeroAssociationHandler {
     /**
      * Constructor

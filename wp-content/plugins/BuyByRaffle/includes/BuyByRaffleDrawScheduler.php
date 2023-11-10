@@ -5,6 +5,7 @@
  * 
  * Handles the scheduling of buy by raffle draw events when product stock status changes.
  */
+namespace Sgs\Buybyraffle;
 class BuyByRaffleDrawScheduler {
 
   

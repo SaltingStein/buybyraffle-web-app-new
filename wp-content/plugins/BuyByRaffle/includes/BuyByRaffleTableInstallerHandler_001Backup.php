@@ -7,6 +7,7 @@
  *
  * @author Terungwa
  */
+namespace BuyByRaffle;
 class BuyByRaffleTableInstallerHandler {
     
     /**
@@ -29,12 +30,12 @@ class BuyByRaffleTableInstallerHandler {
                 // Create tables
                 // The 'self::' syntax is used to call static methods from within the same class.
                 self::createRaffleTable($wpdb, $charset_collate);
-                self::createTicketTable($wpdb, $charset_collate);
                 self::createLogTable($wpdb, $charset_collate);
                 self::createQueuedRaffleTable($wpdb, $charset_collate);
                 self::createRaffleWinnersTable($wpdb, $charset_collate);
                 self::createHeroProductsTable($wpdb, $charset_collate);
                 self::createBaitHeroAssociationTable($wpdb, $charset_collate);
+                self::create_re_raffle_cycle_table($wpdb, $charset_collate);
 
                 // Update the database version in the options table
                 update_option("_buybyraffle_version", BUYBYRAFFLE_VERSION);
@@ -283,6 +284,25 @@ class BuyByRaffleTableInstallerHandler {
 
 
 
-
+    private static function create_re_raffle_cycle_table() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+        $table_name = $wpdb->prefix . 're_raffle_cycle';
+    
+        $sql = "CREATE TABLE $table_name (
+            raffle_cycle_id mediumint(9) NOT NULL AUTO_INCREMENT,
+            product_id mediumint(9) NOT NULL COMMENT 'This is the product ID',
+            raffle_type ENUM('Hero', 'Bait', 'Solo') COLLATE utf8mb4_unicode_520_ci,
+            raffle_class_id mediumint(9) NOT NULL,
+            status ENUM('pending', 'ongoing', 'completed', 'stopped') COLLATE utf8mb4_unicode_520_ci DEFAULT 'pending',
+            created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (raffle_cycle_id)
+        ) $charset_collate;";
+    
+        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+        dbDelta( $sql );
+    }
+    
 
 }

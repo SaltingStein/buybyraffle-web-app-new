@@ -7,6 +7,7 @@
  *
  * @author Terungwa
  */
+namespace Sgs\Buybyraffle;
 class BuyByRaffleOrderStatusManager {
 
     /**

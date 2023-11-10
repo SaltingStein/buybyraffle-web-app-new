@@ -6,6 +6,8 @@
  *
  * @author Terungwa
  */
+namespace Sgs\Buybyraffle;
+use Exception;
 class BuyByRaffleProductTagCreateHandler {
 
     /**
@@ -72,4 +74,4 @@ class BuyByRaffleProductTagCreateHandler {
 }
 
 // Hook to run on plugin activation
-register_activation_hook(__FILE__, array('BuyByRaffleProductTagCreateHandler', 'install'));
+//register_activation_hook(__FILE__, array('BuyByRaffleProductTagCreateHandler', 'install'));

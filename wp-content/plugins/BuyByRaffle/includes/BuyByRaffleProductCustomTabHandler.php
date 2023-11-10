@@ -9,6 +9,7 @@
  * @since      1.0.0
  * @author     Mzer Michael
  */
+namespace Sgs\Buybyraffle;
 class BuyByRaffleProductCustomTabHandler {
     /**
      * Constructor.
