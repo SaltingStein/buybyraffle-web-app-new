@@ -127,7 +127,6 @@ class BuyByRaffleQueuePubSub extends WP_REST_Controller {
     public function publishToTopic($topicName, $queueId, $data) {
         try {
             $bearerToken = $this->getBearerToken();// Determine the environment
-            error_log($bearerToken);
             $env = in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1']) ? 'local' : 'remote';
     
             $payload = [
