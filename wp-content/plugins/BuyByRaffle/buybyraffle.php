@@ -1,12 +1,22 @@
 <?php
 /**
- * BuyByRaffle Plugin File
- *
- * This file represents the main plugin file for the BuyByRaffle plugin which
- * integrates raffles into the WooCommerce shopping experience.
- *
- * @package BuyByRaffle
+ * Plugin Name:       BuyByRaffle
+ * Plugin URI:        [your-website-or-plugin-uri]
+ * Description:       Integrates raffles into the WooCommerce shopping experience, providing an exciting and engaging way for customers to participate in raffles while shopping.
+ * Version:           1.0.0
+ * Requires at least: [minimum-WordPress-version]
+ * Requires PHP:      [minimum-PHP-version]
+ * Author:            SGS TEAM
+ * Author URI:        [author-website]
+ * License:           GPL v2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       buybyraffle
+ * Domain Path:       /languages
  */
+
+// Your plugin's main code starts here.
+
+
 
 // Prevent direct file access.
 defined('WPINC') or die;

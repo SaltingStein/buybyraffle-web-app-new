@@ -8,6 +8,7 @@
  * @author Terungwa
  */
 namespace Sgs\Buybyraffle;
+use Exception;
 class BuyByRaffleTableInstallerHandler {
     
     /**
@@ -38,6 +39,7 @@ class BuyByRaffleTableInstallerHandler {
             //self::createRaffleWinnersTable($wpdb, $charset_collate);
             self::createHeroProductsTable($wpdb, $charset_collate);
             self::createBaitHeroAssociationTable($wpdb, $charset_collate);
+            self::createErrorLogTable($wpdb, $charset_collate);
 
             // Update the database version in the options table
             update_option("_buybyraffle_version", BUYBYRAFFLE_VERSION);
@@ -168,29 +170,52 @@ class BuyByRaffleTableInstallerHandler {
      * @param string $charset_collate The character set and collation for the table.
      */
     private static function createHeroProductsTable($wpdb, $charset_collate) {
-        $table_name = $wpdb->prefix . 'buybyraffle_hero_products';
+        $table_name = $wpdb->prefix . 'buybyraffle_product_config';
         if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
             $sql = "CREATE TABLE $table_name (
-                id int UNSIGNED NOT NULL AUTO_INCREMENT,
-                product_id mediumint(9) NOT NULL,
-                hero_id mediumint(9) NOT NULL,
-                raffle_cycle_id mediumint(9) NOT NULL,
-                status enum('open', 'invalid', 'running', 'redeemed') NOT NULL DEFAULT 'open',
-                created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                PRIMARY KEY (id),
-                UNIQUE (product_id),
-                UNIQUE (raffle_cycle_id)
+               `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+                `product_id` mediumint NOT NULL,
+                `product_type` enum('bait','hero','solo') COLLATE utf8mb4_unicode_520_ci NOT NULL,
+                `raffle_cycle_id` mediumint NOT NULL,
+                `accumulated_sales_value` decimal(9,2) DEFAULT NULL,
+                `status` enum('open','invalid','running','redeemed') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'open',
+                `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                index `product_id` (`product_id`),
+                UNIQUE KEY `raffle_cycle_id` (`raffle_cycle_id`)
             ) $charset_collate;";
             
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             dbDelta($sql);
         }
     }
-
-
-
-
-
-
+    private static function createErrorLogTable($wpdb, $charset_collate) {
+        $table_name = $wpdb->prefix . 'buybyraffle_error_logs';
+    
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            $sql = "CREATE TABLE $table_name (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                user_id BIGINT UNSIGNED NULL,
+                user_action TEXT NULL,
+                message TEXT NOT NULL,
+                logged_at DATETIME NOT NULL,
+                PRIMARY KEY (id)
+            ) $charset_collate;";
+    
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+        }
+    }
+    
+    
+    
 }
+    
+
+
+
+
+
+
+

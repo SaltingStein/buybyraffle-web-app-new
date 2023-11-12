@@ -24,7 +24,7 @@ class BuyByRaffleCycleHandler {
      * Posts a new raffle cycle to an external API using Basic Authentication.
      *
      * @param array $raffleCycleData Data for the raffle cycle.
-     * @return string The ID of the last inserted row from the API response.
+     * @return string|NULL|array The ID of the last inserted row from the API response.
      * @throws Exception If there's an error in API request or response.
      */
     public function createRaffleCycle($raffleCycleData) {
@@ -44,6 +44,7 @@ class BuyByRaffleCycleHandler {
             $apiUrl = $configArray['api_url'];
             $authPassword = $configArray['auth_password'];
 
+
             $data_to_send = json_encode($raffleCycleData);
 
             // Basic Auth credentials (replace with actual credentials)
@@ -58,46 +59,39 @@ class BuyByRaffleCycleHandler {
                 ],
                 'method' => 'POST',
                 'data_format' => 'body',
+                'timeout' => 15 // Increase the timeout to 15 seconds
             ]);
-
-            // Error handling and response processing...
-            if (is_wp_error($api_response)) {
-                throw new Exception('Error posting to external API: ' . $api_response->get_error_message());
-            }
-            //error_log(print_r($api_response), true);
-           
-            // Retrieve the status code and response body from the API response.
-            $status_code = wp_remote_retrieve_response_code($api_response);
-            $api_response_body = wp_remote_retrieve_body($api_response);
-            // error_log($api_response_body);
-            // error_log($status_code);
-            // return '';
-           
-            // Check if the response status code indicates a successful request.
-            if ($status_code >= 200 && $status_code < 300) {
-                // Parse the JSON response body to an associative array.
-                $response_data = json_decode($api_response_body, true);
-
-                // Check for JSON parse errors.
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    throw new Exception('Error parsing JSON from API response: ' . json_last_error_msg());
-                }
-                //error_log(print_r($response_data), true);
-                // Ensure the 'last_insert_id' key exists in the response data.
+            //error_log($api_response['response']['code']);
+            if (!is_wp_error($api_response) && $api_response['response']['code'] == 200) {
+                $response_data = json_decode( wp_remote_retrieve_body( $api_response ), true );
+                 // Check if 'raffle_cycle_id' is set in the response
                 if (isset($response_data['raffle_cycle_id'])) {
-                    // Return the last inserted ID from the response.
-                    return $response_data['raffle_cycle_id'];
+                    $raffle_cycle_id = $response_data['raffle_cycle_id'];
+                    //error_log($raffle_cycle_id);
+                    return array(0=>$raffle_cycle_id, 1=>$api_response['response']['code']);
+                    // Do something with $raffle_cycle_id
                 } else {
-                    // The expected key does not exist in the response; throw an exception.
-                    throw new Exception('Invalid API response: missing raffle cycle ID');
+                    // Handle the case where 'raffle_cycle_id' is not set
+                    $message = "Raffle Cycle ID was not created. HTTP Error coder";
+                    \Sgs\Buybyraffle\BuyByRaffleLogger::log($message, 'Creating a raffle cycle');
+                    return 0;
+                   
                 }
-            } else {
-                // The response did not indicate success, throw an exception with details.
-                throw new Exception("API request failed with status code {$status_code}: " . $api_response_body);
+            } elseif (is_wp_error($api_response)) {
+                $error_message = $api_response->get_error_message();
+                throw new Exception( $error_message );
+            }elseif($api_response['response']['code'] == 404) {
+                throw new Exception( "Remote create raffle cycle API could not be found." );
+            }elseif($api_response['response']['code'] == 401) {
+                throw new Exception( "Authentication to the remote create raffle cycle API failed." );
+            } else{
+                throw new Exception( "The remote create raffle cycle API server is down." );
             }
+
         } catch (Exception $e) {
-            error_log('Error in createRaffleCycle: ' . $e->getMessage());
-            return false;
+            $message = 'Error in createRaffleCycle: ' . $e->getMessage();
+            \Sgs\Buybyraffle\BuyByRaffleLogger::log($message, 'Creating a raffle cycle');
+            return array(1 =>$api_response['response']['code']);
         }
     }
 
@@ -107,11 +101,20 @@ class BuyByRaffleCycleHandler {
      * @return string Configuration file path.
      */
     private function getConfigPath() {
-        $isLocalhost = in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1']);
-        return $isLocalhost ? 
-               'C:\wamp64\www\wordpress\buybyraffle_staging_env.json' :
-               '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_staging_env.json';
+        // Check if the server is localhost
+        if (in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
+            return 'C:\wamp64\www\wordpress\buybyraffle_local_env.json';
+        }
+    
+        // Check if the server is staging
+        if ($_SERVER['SERVER_ADDR'] === '138.68.91.147') {
+            return '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_staging_env.json';
+        }
+    
+        // Assume the server is production
+        return '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle_production_env.json';
     }
+    
 
     /**
      * Loads the configuration from a JSON file.
@@ -121,33 +124,27 @@ class BuyByRaffleCycleHandler {
      * @throws Exception If the file does not exist or cannot be parsed.
      */
     public function loadConfig($configPath) {
-        // Check if the server is local or remote
-        $isLocalhost = in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1']);
-    
-        // Load the JSON configuration file
         if (!file_exists($configPath)) {
             throw new Exception('Configuration file does not exist: ' . $configPath);
         }
     
-        // Decode the JSON string into a PHP associative array
         $config = json_decode(file_get_contents($configPath), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Error decoding JSON configuration file: ' . json_last_error_msg());
+        }
     
         // Prepare an array to hold the loaded configurations
         $loadedConfig = [
-            // Global configurations
-            'idp_token_password' => $config['IDP_TOKEN_PASSWORD'],
-            'idp_token_username' => $config['IDP_TOKEN_USERNAME'],
-            'idp_base_url' => $config['IDP_BASE_URL'],
-            'pgs_cashtoken_campaign_id' => $config['PGS_CASHTOKEN_CAMPAIGN_ID'],
-            'email' => $config['email']
+            'idp_token_password' => $config['IDP_TOKEN_PASSWORD'] ?? '',
+            'idp_token_username' => $config['IDP_TOKEN_USERNAME'] ?? '',
+            'idp_base_url' => $config['IDP_BASE_URL'] ?? '',
+            'pgs_cashtoken_campaign_id' => $config['PGS_CASHTOKEN_CAMPAIGN_ID'] ?? '',
+            'email' => $config['EMAIL'] ?? '',
+            'api_url' => $config['API_URL'] ?? '',
+            'auth_password' => $config['AUTH_PASSWORD'] ?? '',
         ];
     
-        // Load environment-specific configurations
-        $environment = $isLocalhost ? 'local' : 'remote';
-        $loadedConfig['api_url'] = $config['raffle_cycle_url_' . $environment];
-        $loadedConfig['auth_password'] = $config['AUTH_PASSWORD_' . strtoupper($environment)];
-    
-        // Return the loaded configuration
         return $loadedConfig;
     }
+    
 }

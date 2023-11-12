@@ -25,7 +25,7 @@ class BuyByRaffleHeroProductHandler {
         // Make Hero products non-purchasable
         add_filter('woocommerce_is_purchasable', array($this, 'make_non_purchasable'), 10, 2);
 
-        // Registers the add_hero_product method to the save_post action hook.
+        // Registers the create_product_configuration method to the save_post action hook.
         add_action("save_post_product", array($this, "save_bbr_config_custom_fields"), 10, 3); // Priority 10
         //add_action('woocommerce_product_data_panels', 'bbr_config_product_data_fields');
         add_action('woocommerce_product_data_panels', array($this, 'bbr_config_product_data_fields'));
@@ -113,12 +113,15 @@ class BuyByRaffleHeroProductHandler {
                // Ensure that the 'associated_hero_id' is present when 'bait' is selected
             if ($tag === 'bait') {
                 if (isset($_POST['associated_hero_id'])) {
+                    //error_log($_POST['associated_hero_id']);
                     $hero_id = intval($_POST['associated_hero_id']);
+                    $raffle_class_id = BuyByRaffleRaffleClassMgr::get_raffle_class_id_by_name('bait');
                     if ($hero_id <= 0) {
                         throw new Exception('Invalid Hero Product ID provided.');
                     }
                     update_post_meta($post_id, 'associated_hero_id', $hero_id);
-                    $this->associate_baits_with_hero($post_id, $hero_id);
+                    $raffle_cycle_id_bait = $this->create_product_configuration($post_id, $raffle_class_id, get_post($post_id), $this->cycleHandler, false);                    
+                    $this->associate_baits_with_hero($post_id, $hero_id, $raffle_cycle_id_bait);
                 } else {
                     throw new Exception('Hero Product ID must be selected when "bait" tag is selected.');
                 }
@@ -128,7 +131,7 @@ class BuyByRaffleHeroProductHandler {
                 $hero_id = $post_id;
                 // Retrieve the raffle class ID for 'bait'
                 $raffle_class_id = BuyByRaffleRaffleClassMgr::get_raffle_class_id_by_name('hero');
-                $this->add_hero_product($post_id, $raffle_class_id, get_post($post_id), $this->cycleHandler, false);
+                $this->create_product_configuration($post_id, $raffle_class_id, get_post($post_id), $this->cycleHandler, false);
                 //update_post_meta($post_id, 'associated_hero_id', $hero_id);
             }elseif ($tag === 'solo') {
                 // Ensure no association for 'solo' tags
@@ -206,8 +209,8 @@ class BuyByRaffleHeroProductHandler {
     
         // Prepare SQL with JOIN to get the product names from wp_posts table
         $query = "
-            SELECT h.product_id, h.hero_id, p.post_title AS product_name
-            FROM wp_buybyraffle_hero_products h
+            SELECT h.product_id, p.post_title AS product_name
+            FROM wp_buybyraffle_product_config h
             JOIN wp_posts p ON h.product_id = p.ID
             WHERE h.status = 'open' AND p.post_status = 'publish' AND p.post_type = 'product'
         ";
@@ -227,10 +230,10 @@ class BuyByRaffleHeroProductHandler {
     public function get_hero_products() {
         global $wpdb;
         // Define the table name
-        $table_name = $wpdb->prefix . 'buybyraffle_hero_products';
+        $table_name = $wpdb->prefix . 'buybyraffle_product_config';
     
         // Write a SQL query to get all hero IDs where the status is 'active'
-        $sql = $wpdb->prepare("SELECT DISTINCT hero_id FROM $table_name WHERE status = %s", 'open');
+        $sql = $wpdb->prepare("SELECT DISTINCT product_id FROM $table_name WHERE status = %s AND raffle_class_id = %d", 'open', 2);
     
         // Execute the query and get the results
         $hero_ids = $wpdb->get_col($sql);
@@ -303,94 +306,91 @@ class BuyByRaffleHeroProductHandler {
      * @param WP_Post $post The post object.
      * @param bool    $update Whether this is an existing post being updated or not.
      */
-    public function add_hero_product($post_ID, $raffle_class_id, $post, $cycleHandler, $update) {
-        // $post_id, $raffle_class_id, get_post($post_id), $this->cycleHandler, false
+    public function create_product_configuration($post_ID, $raffle_class_id, $post, $cycleHandler, $update) {
         // If it's not a product or if it's a WordPress autosave, return early
         //error_log(print_r($post, true));
         if ($post->post_type !== 'product' || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)) {
             return $post_ID;
-        }
-            
+        }            
 
-        try {
+        try{
             global $wpdb;
-            $table_name = $wpdb->prefix . 'buybyraffle_hero_products';
+            $table_name = $wpdb->prefix . 'buybyraffle_product_config';
             // Using 'product_tag' taxonomy to check for 'Hero' tag
             $terms = get_the_terms($post_ID, 'product_tag');
             //error_log('Terms Data here: ' . print_r($terms, true));
             if (is_wp_error($terms)) {
-                throw new Exception("Error retrieving the 'Hero' tag: " . $terms->get_error_message());
+                throw new Exception("Error retrieving the tags: " . $terms->get_error_message());
             }
 
-            $existing_product = $wpdb->get_var("SELECT status FROM {$table_name} WHERE product_id = $post_ID");
+            
+           // Check if the $post_ID is already in the database with any status other than 'redeemed'
+            $existing_open_or_running_entry = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE product_id = %d AND status NOT IN ('redeemed')", $post_ID));
 
-            $is_hero = false;
-            if (is_array($terms)) {
-                foreach ($terms as $term) {
-                    if ($term->name === 'Hero') {
-                        $is_hero = true;
-                        break;
+            if ($existing_open_or_running_entry) {
+                // Entry exists with a status other than 'redeemed' - log as a duplicate request
+                $message = "Duplicate request: Entry already exists for product ID: $post_ID with status not 'redeemed'.";
+                \Sgs\Buybyraffle\BuyByRaffleLogger::log($message, 'Creating a product');
+
+            } else {
+                // Use the cycleHandler to insert and get the ID
+                // Data to insert into the external database
+                $insertData = [
+                    'product_id' => $post_ID,
+                    'status' => 'pending', // Define your status
+                    'raffle_class_id' => $raffle_class_id,
+                ];
+                //('insertData Data here: ' . print_r($insertData, true));
+                $raffle_cycle_id = $this->cycleHandler->createRaffleCycle($insertData);
+                //error_log(print_r($raffle_cycle_id), true);
+                if (intval($raffle_cycle_id[1]) !== 200 && intval($raffle_cycle_id[1]) !== 201){
+                    $message = "Raffle Cycle ID was not created. HTTP Error coder: " . $raffle_cycle_id[1];
+                    \Sgs\Buybyraffle\BuyByRaffleLogger::log($message, 'Creating a product');
+                   
+                    return;
+                }else{
+                    $raffle_cycle_id = $raffle_cycle_id[0];
+                    // Either no entry exists, or existing entries are only 'redeemed'
+                    // Prepare the data for a new entry or update
+                    $data = array(
+                        'product_id' => $post_ID,
+                        'raffle_cycle_id' => $raffle_cycle_id,
+                        'status' => 'open',
+                        'raffle_class_id' => $raffle_class_id
+                    );
+                    $format = array('%d', '%d', '%s', '%d');
+
+                    // Check if an entry with status 'redeemed' exists
+                    $existing_redeemed_entry = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE product_id = %d AND status = %s", $post_ID, 'redeemed'));
+
+                    if ($existing_redeemed_entry) {
+                        // Update the existing 'redeemed' entry to 'open'
+                        $wpdb->update($table_name, $data, array('product_id' => $post_ID, 'status' => 'redeemed'), $format, array('%d', '%s'));
+                        $message = "Updated entry from 'redeemed' to 'open' for product ID: $post_ID with raffle cycle ID: $raffle_cycle_id";                       
+                        \Sgs\Buybyraffle\BuyByRaffleLogger::log($message, $user_action = 'Creating a product');
+                    } else {
+                        // Insert a new entry as no 'open' or 'running' entry exists for this product ID
+                        $wpdb->insert($table_name, $data, $format);
+                        error_log("Created a new entry for product ID: $post_ID with raffle cycle ID: $raffle_cycle_id");
+                    }
+                    return $raffle_cycle_id;
+
+                    // Check for database errors
+                    if ($wpdb->last_error) {
+                        error_log("Database error: " . $wpdb->last_error);
                     }
                 }
             }
-            // Prevent Hero tag change if the status is 'running' or 'redeemed'
-            if ($existing_product && in_array($existing_product, ['running']) && !$is_hero) {
-                add_action('admin_notices', function() {
-                    echo '<div class="notice notice-error is-dismissible">';
-                    echo '<p>You cannot remove the Hero tag from this product because its status is either "running" or "redeemed".</p>';
-                    echo '</div>';
-                });
-                return; // Exit the function early
-            }
-           
-            // Use the cycleHandler to insert and get the ID
-            // Data to insert into the external database
-            $insertData = [
-                'product_id' => $post_ID,
-                'raffle_type' => 'Hero', // Define your raffle type
-                'status' => 'pending', // Define your status
-                'raffle_class_id' => $raffle_class_id,
-            ];
-            $raffle_cycle_id = $this->cycleHandler->createRaffleCycle($insertData);
-           
-            // Get the last inserted ID, which is the raffle_cycle_id
-            // Insert or update the Hero product in the table
-            error_log($raffle_cycle_id);
-            if ($is_hero) {
-                $data = array(
-                    'product_id' => $post_ID,
-                    'hero_id' => $post_ID,
-                    'raffle_cycle_id' => $raffle_cycle_id,
-                    'status' => 'open',
-                    'raffle_class_id' => $raffle_class_id
-                );
-                $format = array('%d', '%d', '%d', '%s', '%d');
 
-                if (null === $existing_product) {
-                    $wpdb->insert($table_name, $data, $format);
-                } else {
-                    $wpdb->update($table_name, $data, array('product_id' => $post_ID), $format, array('%d'));
-                }
-
-                // Check for errors in the local DB operation
-                if ($wpdb->last_error) {
-                    throw new Exception($wpdb->last_error);
-                }
-
-                // If all operations are successful, commit the transaction
-                return true;                
-            }else{
-                error_log(500);
-            }
             
         } catch (PDOException $e) {
             // Handle external database errors
-            error_log("Connection failed in add_hero_product method: " . $e->getMessage());
-            return new WP_Error('external_db_error in add_hero_product', $e->getMessage());
+            error_log("Connection failed in create_product_configuration method: " . $e->getMessage());
+            return new WP_Error('external_db_error in create_product_configuration', $e->getMessage());
         } catch (Exception $e) {
             // Handle all other exceptions
-            error_log("Caught exception in add_hero_product method: " . $e->getMessage());
-            return new WP_Error('hero_product_error in add_hero_product', $e->getMessage());
+            error_log("Caught exception in create_product_configuration method: " . $e->getMessage());
+            return new WP_Error('hero_product_error in create_product_configuration', $e->getMessage());
         }
     }
 
@@ -443,7 +443,7 @@ class BuyByRaffleHeroProductHandler {
      * @param WP_Post $post    The post object.
      * @param bool    $update  Whether this is an existing post being updated or not.
      */
-    public function associate_baits_with_hero($post_ID, $hero_product_id) {
+    public function associate_baits_with_hero($post_ID, $hero_product_id, $raffle_cycle_id_bait) {
         global $wpdb;
         // Add additional checks for bulk or quick edit
         if (doing_action('bulk_edit') || doing_action('quick_edit')) {
@@ -471,6 +471,7 @@ class BuyByRaffleHeroProductHandler {
             }
             
             // Check if the product is a bait product
+            //error_log("Post ID: ".$post_ID);
             if ($this->is_bait_product($post_ID)) {
                 //throw new Exception("Product ID: $post_ID is not a bait product, and therefore cant be added to the wp_buybyraffle_bait_hero_association table.");
                  // Validate the input field when "bait" is selected
@@ -496,8 +497,8 @@ class BuyByRaffleHeroProductHandler {
                 throw new Exception("Hero product ID is not set for this bait product: $post_ID");
             }
             // Check if the hero product status is 'open'
-            //$hero_status = $wpdb->get_var("SELECT status FROM wp_buybyraffle_hero_products WHERE hero_id = $hero_id");
-            $hero_status = $wpdb->get_var("SELECT status FROM wp_buybyraffle_hero_products WHERE hero_id = $hero_id AND status = 'open'");
+            //$hero_status = $wpdb->get_var("SELECT status FROM wp_buybyraffle_product_config WHERE hero_id = $hero_id");
+            $hero_status = $wpdb->get_var($wpdb->prepare("SELECT status FROM wp_buybyraffle_product_config WHERE product_id = %d AND status = %s AND raffle_class_id = %d", $hero_id, 'open', 2));
 
             if ($hero_status === null) {
                 // Log or handle the case where hero product is not found
@@ -514,6 +515,7 @@ class BuyByRaffleHeroProductHandler {
                     array(
                         'bait_id' => $post_ID,
                         'hero_id' => $hero_id,
+                        'raffle_cycle_id_bait' => $raffle_cycle_id_bait,
                         'updated_date' => current_time('mysql')
                     ),
                     array('%d', '%d', '%s')
@@ -541,11 +543,14 @@ class BuyByRaffleHeroProductHandler {
      * @param int $product_id The ID of the product to check.
      * @return bool True if the product is a bait product, false otherwise.
      */
-        private function is_bait_product(int $product_id): bool {
+        private function is_bait_product($product_id) {
         try {
-            $tags = wp_get_post_tags($product_id);
+            //error_log('This product ID is : '.$product_id);
+            $tags = wp_get_post_terms($product_id, 'product_tag'); // Assuming 'product_tag' is the taxonomy
+            //error_log(print_r($tags, true));
             foreach ($tags as $tag) {
-                if ('bait' === $tag->name) {
+                if ('bait' === strtolower($tag->name)) {
+                    //error_log('This product is a bait: '.$product_id);
                     return true;
                 }
             }
