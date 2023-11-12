@@ -6,12 +6,14 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'phpseclib3\\' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'Sgs\\Buybyraffle\\' => array($baseDir . '/includes'),
     'Rize\\' => array($vendorDir . '/rize/uri-template/src/Rize'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-factory/src', $vendorDir . '/psr/http-message/src'),
     'Psr\\Http\\Client\\' => array($vendorDir . '/psr/http-client/src'),
     'Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
+    'ParagonIE\\ConstantTime\\' => array($vendorDir . '/paragonie/constant_time_encoding/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
     'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
     'GuzzleHttp\\Promise\\' => array($vendorDir . '/guzzlehttp/promises/src'),
@@ -19,6 +21,7 @@ return array(
     'Grpc\\Gcp\\' => array($vendorDir . '/google/grpc-gcp/src'),
     'Grpc\\' => array($vendorDir . '/grpc/grpc/src/lib'),
     'Google\\Type\\' => array($vendorDir . '/google/common-protos/src/Type'),
+    'Google\\Service\\' => array($vendorDir . '/google/apiclient-services/src'),
     'Google\\Rpc\\' => array($vendorDir . '/google/common-protos/src/Rpc'),
     'Google\\Protobuf\\' => array($vendorDir . '/google/protobuf/src/Google/Protobuf'),
     'Google\\LongRunning\\' => array($vendorDir . '/google/longrunning/src/LongRunning'),
@@ -30,6 +33,7 @@ return array(
     'Google\\Api\\' => array($vendorDir . '/google/common-protos/src/Api'),
     'Google\\ApiCore\\LongRunning\\' => array($vendorDir . '/google/longrunning/src/ApiCore/LongRunning'),
     'Google\\ApiCore\\' => array($vendorDir . '/google/gax/src'),
+    'Google\\' => array($vendorDir . '/google/apiclient/src'),
     'GPBMetadata\\Google\\Type\\' => array($vendorDir . '/google/common-protos/metadata/Type'),
     'GPBMetadata\\Google\\Rpc\\' => array($vendorDir . '/google/common-protos/metadata/Rpc'),
     'GPBMetadata\\Google\\Pubsub\\' => array($vendorDir . '/google/cloud-pubsub/metadata'),

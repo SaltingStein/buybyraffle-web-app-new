@@ -16,6 +16,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "google/cloud-pubsub": "^1.46"
+        "google/cloud-pubsub": "^1.46",
+        "google/apiclient": "^2.0"
     }
 }

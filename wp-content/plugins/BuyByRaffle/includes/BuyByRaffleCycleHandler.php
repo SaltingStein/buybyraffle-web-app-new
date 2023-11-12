@@ -62,7 +62,8 @@ class BuyByRaffleCycleHandler {
                 'timeout' => 15 // Increase the timeout to 15 seconds
             ]);
             //error_log($api_response['response']['code']);
-            if (!is_wp_error($api_response) && $api_response['response']['code'] == 200) {
+            //if (!is_wp_error($api_response) && $api_response['response']['code'] == 200) {
+            if(!is_wp_error($api_response) && $api_response['response']['code'] >= 200 && $api_response['response']['code'] < 300) {
                 $response_data = json_decode( wp_remote_retrieve_body( $api_response ), true );
                  // Check if 'raffle_cycle_id' is set in the response
                 if (isset($response_data['raffle_cycle_id'])) {
@@ -77,7 +78,7 @@ class BuyByRaffleCycleHandler {
                     return 0;
                    
                 }
-            } elseif (is_wp_error($api_response)) {
+            }elseif (is_wp_error($api_response)) {
                 $error_message = $api_response->get_error_message();
                 throw new Exception( $error_message );
             }elseif($api_response['response']['code'] == 404) {

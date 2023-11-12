@@ -120,7 +120,8 @@ class BuyByRaffleTableInstallerHandler {
                 `status` enum('pending','processing','completed','cancelled') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'pending',
                 `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                PRIMARY KEY (`task_id`)
+                PRIMARY KEY (`task_id`),
+                UNIQUE KEY `raffle_cycle_id` (`raffle_cycle_id`)
             ) $charset_collate;";
             
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');

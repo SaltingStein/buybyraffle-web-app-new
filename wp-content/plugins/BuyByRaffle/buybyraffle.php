@@ -102,7 +102,8 @@ class BuyByRaffle {
         // Initializes admin handlers if in the admin area and WooCommerce is active.
         if (is_admin() && $this->is_woocommerce_active()) {
             $this->initialize_admin_handlers();
-        }
+        }       
+        
     }
 
     /**
@@ -155,6 +156,8 @@ class BuyByRaffle {
 if (is_admin()) {
     new BuyByRaffle();
 } 
+// Instantiate PostToPubSub
+new \Sgs\Buybyraffle\BuyByRaffleQueuePubSub();
 
 // Handle plugin deactivation if WooCommerce is not active.
 if (!is_admin() && !BuyByRaffle::is_woocommerce_active()) {
