@@ -120,8 +120,19 @@ class BuyByRaffleHeroProductHandler {
                         throw new Exception('Invalid Hero Product ID provided.');
                     }
                     update_post_meta($post_id, 'associated_hero_id', $hero_id);
-                    $raffle_cycle_id_bait = $this->create_product_configuration($post_id, $raffle_class_id, get_post($post_id), $this->cycleHandler, false);                    
+                   $raffle_cycle_id_bait = $this->create_product_configuration($post_id, $raffle_class_id, get_post($post_id), $this->cycleHandler, false);
+                    error_log($raffle_cycle_id_bait);
+                // Assuming create_product_configuration returns false or a null-equivalent value on failure
+                if ($raffle_cycle_id_bait) {
+                    // Function was successful, proceed to the next step
                     $this->associate_baits_with_hero($post_id, $hero_id, $raffle_cycle_id_bait);
+                } else {
+                    // Function failed, handle the error accordingly
+                    // For example, you might log the error or take some other action
+                    $message = "Failed to create product configuration for Product ID: $post_id therefore association also failed";
+                    \sgs\BuyByRaffle\BuyByRaffleLogger::log($message, "Adding a bait product configuration");
+                }
+
                 } else {
                     throw new Exception('Hero Product ID must be selected when "bait" tag is selected.');
                 }
