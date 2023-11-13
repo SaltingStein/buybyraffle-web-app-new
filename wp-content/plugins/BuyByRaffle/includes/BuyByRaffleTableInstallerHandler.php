@@ -41,7 +41,7 @@ class BuyByRaffleTableInstallerHandler {
             self::createHeroProductsTable($wpdb, $charset_collate);
             self::createBaitHeroAssociationTable($wpdb, $charset_collate);
             self::createErrorLogTable($wpdb, $charset_collate);
-
+            self::createCashTokenGiftingLog($wpdb, $charset_collate);
             // Update the database version in the options table
             update_option("_buybyraffle_version", BUYBYRAFFLE_VERSION);
 
@@ -201,14 +201,15 @@ class BuyByRaffleTableInstallerHandler {
                 `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
                 `user_id` bigint NOT NULL,
                 `order_id` bigint NOT NULL,
-                `status` enum('0','1','2','3') NOT NULL DEFAULT 0 COMMENT '0=pending; 1=processing;2=gifted; 3=failed',
+                `status` enum('0','1','2','3') NOT NULL DEFAULT '0',
                 `pubsub_message_id` varchar(11) NOT NULL,
                 `logged_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`id`),
-                KEY `raffle_cycle_id` (`raffle_cycle_id`),
-                KEY `user_id` (`user_id`)
-            ) $charset_collate;";
+                KEY `user_id` (`user_id`),
+                KEY `order_id` (`order_id`)
+            ) $charset_collate COMMENT='Table for logging cashtoken gifting';";
+            
     
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             dbDelta($sql);
