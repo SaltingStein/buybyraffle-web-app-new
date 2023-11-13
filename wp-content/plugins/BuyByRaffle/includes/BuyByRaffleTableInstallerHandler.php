@@ -175,16 +175,16 @@ class BuyByRaffleTableInstallerHandler {
         if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
             $sql = "CREATE TABLE $table_name (
                `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
-                `product_id` mediumint NOT NULL,
-                `product_type` enum('bait','hero','solo') COLLATE utf8mb4_unicode_520_ci NOT NULL,
+                `product_id` int NOT NULL,
+                `raffle_class_id` enum('1','2','3') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
                 `raffle_cycle_id` mediumint NOT NULL,
                 `accumulated_sales_value` decimal(9,2) DEFAULT NULL,
                 `status` enum('open','invalid','running','redeemed') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'open',
                 `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`id`),
-                index `product_id` (`product_id`),
-                UNIQUE KEY `raffle_cycle_id` (`raffle_cycle_id`)
+                UNIQUE KEY `raffle_cycle_id` (`raffle_cycle_id`),
+                KEY `product_id` (`product_id`)
             ) $charset_collate;";
             
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');

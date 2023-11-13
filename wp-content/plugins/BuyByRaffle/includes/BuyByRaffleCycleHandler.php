@@ -109,11 +109,11 @@ class BuyByRaffleCycleHandler {
     
         // Check if the server is staging
         if ($_SERVER['SERVER_ADDR'] === '138.68.91.147') {
-            return '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_staging_env.json';
+            return '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_env.json';
         }
     
         // Assume the server is production
-        return '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle_production_env.json';
+        return '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle_env.json';
     }
     
 
