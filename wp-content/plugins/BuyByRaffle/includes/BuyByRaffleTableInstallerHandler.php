@@ -9,6 +9,7 @@
  */
 namespace Sgs\Buybyraffle;
 use Exception;
+use wpdb;
 class BuyByRaffleTableInstallerHandler {
     
     /**
@@ -50,25 +51,7 @@ class BuyByRaffleTableInstallerHandler {
             error_log("Caught exception: " . $e->getMessage());
         }
     }
-    private static function create_re_raffle_cycle_table() {
-        global $wpdb;
-        $charset_collate = $wpdb->get_charset_collate();
-        $table_name = $wpdb->prefix . 're_raffle_cycle';
     
-        $sql = "CREATE TABLE $table_name (
-            raffle_cycle_id mediumint(9) NOT NULL AUTO_INCREMENT,
-            product_id mediumint(9) NOT NULL COMMENT 'This is the product ID',
-            raffle_type ENUM('Hero', 'Bait', 'Solo') COLLATE utf8mb4_unicode_520_ci,
-            raffle_class_id mediumint(9) NOT NULL,
-            status ENUM('pending', 'ongoing', 'completed', 'stopped') COLLATE utf8mb4_unicode_520_ci DEFAULT 'pending',
-            created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (raffle_cycle_id)
-        ) $charset_collate;";
-    
-        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-        dbDelta( $sql );
-    }
     /**
      * Create Log Table
      *
@@ -147,13 +130,14 @@ class BuyByRaffleTableInstallerHandler {
         if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
             // SQL statement for creating the table
             $sql = "CREATE TABLE $table_name (
-                id int UNSIGNED NOT NULL AUTO_INCREMENT,
-                bait_id mediumint(9) NOT NULL,
-                hero_id mediumint(9) NOT NULL,
-                status enum('active', 'deleted', 'unpublished') NOT NULL DEFAULT 'active',
-                created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                PRIMARY KEY (id)
+                `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+                `bait_id` mediumint NOT NULL,
+                `raffle_cycle_id_bait` int DEFAULT NULL,
+                `hero_id` mediumint NOT NULL,
+                `status` enum('active','deleted','unpublished') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'active',
+                `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`)
             ) $charset_collate;";
             
             // Include WordPress table creation API and create the table

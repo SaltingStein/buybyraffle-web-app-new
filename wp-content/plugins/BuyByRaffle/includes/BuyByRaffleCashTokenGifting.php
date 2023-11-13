@@ -71,7 +71,8 @@ class BuyByRaffleCashTokenGifting {
         $parsedKeySet = JWK::parseKeySet($jwks);
         try {
             // Decoding the JWT with RS256 algorithm.
-            $decoded = JWT::decode($jwt, $parsedKeySet, ['RS256']);
+            //$decoded = JWT::decode($jwt, $parsedKeySet, ['RS256']);
+            $decoded = JWT::decode($jwt, new Key($parsedKeySet, 'RS256'));
             // Additional validation can be added here (e.g., checking 'iss', 'aud' fields)
             return true;
         } catch (\Exception $e) {
