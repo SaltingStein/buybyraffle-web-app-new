@@ -67,11 +67,11 @@ class BuyByRaffleCashTokenGifting {
         $jwksUrl = 'https://www.googleapis.com/oauth2/v3/certs'; // URL to get Google's public keys
         $jwksJson = file_get_contents($jwksUrl);
         $jwks = json_decode($jwksJson, true);
-        $keySet = JWK::parseKeySet($jwks);
-    
+        // Store the parsed keys in a variable
+        $parsedKeySet = JWK::parseKeySet($jwks);
         try {
             // Decoding the JWT with RS256 algorithm.
-            $decoded = JWT::decode($jwt, $keySet, ['RS256']);
+            $decoded = JWT::decode($jwt, $parsedKeySet, ['RS256']);
             // Additional validation can be added here (e.g., checking 'iss', 'aud' fields)
             return true;
         } catch (\Exception $e) {
