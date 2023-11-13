@@ -16,7 +16,7 @@
 /readme.html
 /wp-*.php
 /xmlrpc.php
-
+/wp-content/fonts/
 # Configuration
 wp-config.php
 
@@ -34,6 +34,7 @@ wp-config.php
 
 # htaccess
 /.htaccess
+* text=auto
 
 # All plugins
 #
