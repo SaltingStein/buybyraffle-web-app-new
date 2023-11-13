@@ -5,7 +5,7 @@
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '69795319784f0b65e0a825230213dec5bbb8be82',
+        'reference' => 'ec6c0941b45b73ec53f203986a7263f4cf09887e',
         'name' => 'sgs/buybyraffle',
         'dev' => true,
     ),
@@ -274,7 +274,7 @@
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '69795319784f0b65e0a825230213dec5bbb8be82',
+            'reference' => 'ec6c0941b45b73ec53f203986a7263f4cf09887e',
             'dev_requirement' => false,
         ),
         'symfony/deprecation-contracts' => array(
