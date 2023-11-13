@@ -165,6 +165,7 @@ class BuyByRaffleQueuePubSub extends WP_REST_Controller {
         }
     }
 
+   
      /**
      * Handles the queue request, logs to database, and publishes to PubSub.
      * 
@@ -172,34 +173,101 @@ class BuyByRaffleQueuePubSub extends WP_REST_Controller {
      * @return WP_REST_Response|WP_Error
      */
     public function handle_queue_request(WP_REST_Request $request) {
-        
-        //error_log('handle_queue_request called');
-        global $wpdb; // Explain why global $wpdb is used here (access to WP database)
+        global $wpdb;
         $params = $request->get_json_params();
         $raffleCycleId = $params['raffle_cycle_id'] ?? 0;
+        $order_id = $params['order_id'] ?? 0;
+        $action = $params['action'] ?? '';
 
+        switch ($action) {
+            case 'initiate_raffle':
+                $taskId = $this->queueInitiateRaffle($raffleCycleId);
+                break;
+
+            case 'giftcashtoken':
+                $taskId = $this->queueGiftCashtoken($order_id);
+                break;
+
+            default:
+                return new WP_Error('invalid_action', 'Invalid action specified', ['status' => 400]);
+        }
+
+        if ($taskId === false) {
+            return new WP_Error('queue_error', 'Failed to queue the request', ['status' => 500]);
+        }
+
+        return new WP_REST_Response(['message' => 'Queued and published successfully', 'task_id' => $taskId], 200);
+    }
+
+    private function queueInitiateRaffle($raffleCycleId) {
+        global $wpdb;
+        $tableName = $wpdb->prefix . 'buybyraffle_queued_raffles';
+    
         // Insert into database
         $inserted = $wpdb->insert(
-            $this->tableName,
+            $tableName,
             array(
                 'raffle_cycle_id' => $raffleCycleId,
-                'status' => 'pending',
-                // 'created_date' is automatically set by MySQL
+                'status' => 'pending'
             ),
             array('%d', '%s')
         );
-
+    
         if ($inserted === false) {
-            return new WP_Error('db_insert_error', 'Failed to insert into the database', array('status' => 500));
+            error_log('Failed to insert into database: ' . $wpdb->last_error);
+            return false; // Return false on failure
         }
-
+    
         $taskId = $wpdb->insert_id;
-        $publishResult = $this->publishToTopic('draw-engine', $taskId, ['raffle_cycle_id' => $raffleCycleId]);
-
+    
+        // Prepare data for publishing
+        $data = ['raffle_cycle_id' => $raffleCycleId];
+        
+        // Publish to PubSub topic
+        $publishResult = $this->publishToTopic('draw-engine', $taskId, $data);
+    
         if ($publishResult === false) {
-            return new WP_Error('publish_failed', 'Failed to publish to topic', array('status' => 500));
+            error_log('Failed to publish to draw-engine topic');
+            return false; // Return false on failure
         }
-
-        return new WP_REST_Response(array('message' => 'Queued and published successfully', 'task_id' => $taskId), 200);
+    
+        return $taskId; // Return the task ID on success
     }
+    
+
+    private function queueGiftCashtoken($order_id) {
+        global $wpdb;
+        $tableName = $wpdb->prefix . 'buybyraffle_cashtoken_gifting_logs';
+    
+        // Insert into database
+        $inserted = $wpdb->insert(
+            $tableName,
+            array(
+                'order_id' => $order_id,
+                'status' => 'pending'
+            ),
+            array('%d', '%s')
+        );
+    
+        if ($inserted === false) {
+            error_log('Failed to insert into database: ' . $wpdb->last_error);
+            return false; // Return false on failure
+        }
+    
+        $taskId = $wpdb->insert_id;
+    
+        // Prepare data for publishing
+        $data = ['order_id' => $order_id];
+        
+        // Publish to PubSub topic
+        $publishResult = $this->publishToTopic('Cashtoken', $taskId, $data);
+    
+        if ($publishResult === false) {
+            error_log('Failed to publish to Cashtoken topic');
+            return false; // Return false on failure
+        }
+    
+        return $taskId; // Return the task ID on success
+    }
+    
 }

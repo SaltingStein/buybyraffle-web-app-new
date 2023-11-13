@@ -208,6 +208,28 @@ class BuyByRaffleTableInstallerHandler {
             dbDelta($sql);
         }
     }
+
+    private static function createCashTokenGiftingLog($wpdb, $charset_collate) {
+        $table_name = $wpdb->prefix . 'buybyraffle_cashtoken_gifting_logs';
+    
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            $sql = "CREATE TABLE $table_name (
+                `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+                `user_id` bigint NOT NULL,
+                `order_id` bigint NOT NULL,
+                `status` enum('0','1','2','3') NOT NULL DEFAULT 0 COMMENT '0=pending; 1=processing;2=gifted; 3=failed',
+                `pubsub_message_id` varchar(11) NOT NULL,
+                `logged_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                KEY `raffle_cycle_id` (`raffle_cycle_id`),
+                KEY `user_id` (`user_id`)
+            ) $charset_collate;";
+    
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+        }
+    }
     
     
     

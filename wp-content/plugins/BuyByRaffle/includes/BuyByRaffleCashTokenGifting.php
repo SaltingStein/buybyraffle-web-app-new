@@ -1,17 +1,23 @@
-<?php
+<?php 
+namespace Sgs\Buybyraffle;
+
+use WP_REST_Request;
+use WP_REST_Response;
 
 /**
- * Class CashTokenGiftingAPI
+ * Class BuyByRaffleCashTokenGifting
  * 
  * Handles the CashToken Gifting REST API endpoint.
+ * It provides functionality to process and respond to gifting requests.
  */
-class CashTokenGiftingAPI{
+class BuyByRaffleCashTokenGifting {
+
     /**
      * Constructor.
      * 
      * Adds the action to initialize the REST API endpoint.
      */
-    public function __construct(){
+    public function __construct() {
         add_action('rest_api_init', [$this, 'init_rest_api']);
     }
 
@@ -20,12 +26,12 @@ class CashTokenGiftingAPI{
      * 
      * Registers the route '/cashtoken/v2/gifting' for POST method.
      */
-    public function init_rest_api(){
-        register_rest_route('cashtoken/v2', '/gifting', array(
+    public function init_rest_api() {
+        register_rest_route('cashtoken/v2', '/gifting', [
             'methods' => 'POST',
             'callback' => [$this, 'handleGifting'],
             'permission_callback' => '__return_true',
-        ));
+        ]);
     }
 
     /**
@@ -37,8 +43,41 @@ class CashTokenGiftingAPI{
      * @param WP_REST_Request $request The REST request object.
      * @return WP_REST_Response The response object with the appropriate status code.
      */
-    public function handleGifting(WP_REST_Request $request)
-    {
+    public function handleGifting(WP_REST_Request $request) {
+        // Decode the JSON input to get the order ID.
+        $input = @file_get_contents("php://input");
+        $eventObj = json_decode($input);
+
+        $order_id = $eventObj->order_id;
+        $sns_status = get_post_meta($order_id, '_customer_gifted', true);
+
+        // Check the status of the order and return appropriate responses.
+        if ($sns_status === 'true') {
+            return $this->returnStatusCode(200);
+        } elseif ($sns_status === 'processing') {
+            return $this->returnStatusCode(500);
+        }
+
+        // Call the main gifting process method.
+        $this->processGifting($order_id, $sns_status);
+
+        // If the process reaches here, assume successful completion.
+        update_post_meta($order_id, '_customer_gifted', 'gifted');
+        return $this->returnStatusCode(200);
+    }
+
+    /**
+     * Processes the actual gifting logic.
+     * 
+     * This is separated from the main handler to keep the code modular and manageable.
+     * Implement the actual gifting logic here.
+     *
+     * @param int $order_id The ID of the order.
+     * @param string $sns_status The current status of the gifting process.
+     */
+    private function processGifting($order_id, $sns_status) {
+        // Implement the logic for processing gifting.
+       
         $input = @file_get_contents("php://input");
         $eventObj = json_decode($input);
 
@@ -191,9 +230,7 @@ class CashTokenGiftingAPI{
      * @param int $code The HTTP status code to return.
      * @return WP_REST_Response The REST response object.
      */
-    private function returnStatusCode($code)
-    {
-        $this->returnStatusCode($code);
+    private function returnStatusCode($code) {
         return new WP_REST_Response('', $code);
     }
 }

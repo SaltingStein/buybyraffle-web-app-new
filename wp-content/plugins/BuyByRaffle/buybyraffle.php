@@ -156,8 +156,9 @@ class BuyByRaffle {
 if (is_admin()) {
     new BuyByRaffle();
 } 
-// Instantiate PostToPubSub
+// Instantiate PostToPubSub and gist cashtoken
 new \Sgs\Buybyraffle\BuyByRaffleQueuePubSub();
+new \Sgs\Buybyraffle\BuyByRaffleCashTokenGifting();
 
 // Handle plugin deactivation if WooCommerce is not active.
 if (!is_admin() && !BuyByRaffle::is_woocommerce_active()) {
