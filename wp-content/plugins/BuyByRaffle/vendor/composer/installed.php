@@ -5,7 +5,7 @@
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '11bbe06b00815cf9da77000408dfbffe77f1f813',
+        'reference' => '97abf44a0e64a1451c27c017b887afdd6e080f9a',
         'name' => 'sgs/buybyraffle',
         'dev' => true,
     ),
@@ -29,12 +29,12 @@
             'dev_requirement' => false,
         ),
         'google/apiclient-services' => array(
-            'pretty_version' => 'v0.323.0',
-            'version' => '0.323.0.0',
+            'pretty_version' => 'v0.200.0',
+            'version' => '0.200.0.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../google/apiclient-services',
             'aliases' => array(),
-            'reference' => 'd5497d30ddfafe7592102ca48bedaf222a4ca7a6',
+            'reference' => '0375af405757b36f3bcc82e19d7daf61e0b4cfd8',
             'dev_requirement' => false,
         ),
         'google/auth' => array(
@@ -274,7 +274,7 @@
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '11bbe06b00815cf9da77000408dfbffe77f1f813',
+            'reference' => '97abf44a0e64a1451c27c017b887afdd6e080f9a',
             'dev_requirement' => false,
         ),
         'symfony/deprecation-contracts' => array(
