@@ -102,19 +102,36 @@ class BuyByRaffleCycleHandler {
      * @return string Configuration file path.
      */
     private function getConfigPath() {
-        // Check if the server is localhost
-        if (in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
-            return 'C:\wamp64\www\wordpress\buybyraffle_local_env.json';
-        }
+        $environment = wp_get_environment_type();
     
-        // Check if the server is staging
-        if ($_SERVER['SERVER_ADDR'] === '138.68.91.147') {
-            return '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_env.json';
+        switch ($environment) {
+            case 'development':
+                return 'C:\wamp64\www\wordpress\buybyraffle_local_env.json';
+            case 'staging':
+                return '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_env.json';
+            case 'production':
+                return '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle_env.json';
+            default:
+                // Handle unexpected environment
+                $errorMessage = "Unexpected environment type: $environment";
+                error_log($errorMessage);
+
+                // Send an email notification
+                $to = 'terungwa@cashtoken.africa'; // Replace with your admin email address
+                $subject = 'Configuration Error in BuyByRaffleCycleHandler';
+                $message = "An error occurred in the BuyByRaffleCycleHandler: $errorMessage";
+                $headers = 'From: admin@buybyraffle.com' . "\r\n"; // Replace with your from email address
+
+                if (!mail($to, $subject, $message, $headers)) {
+                    error_log('Failed to send email regarding environment configuration error.');
+                }
+
+                // Set a default configuration path or handle the error
+                //$this->configFilePath = '/path/to/default/config.json';
+                break;
         }
-    
-        // Assume the server is production
-        return '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle_env.json';
     }
+    
     
 
     /**

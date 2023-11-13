@@ -81,15 +81,42 @@ class BuyByRaffleQueuePubSub extends WP_REST_Controller {
      * Sets the configuration file path based on the server environment.
      */
     private function setEnvironmentConfig() {
-        // Add comments explaining the logic for different environments
-        if (in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
-            $this->configFilePath = 'C:\wamp64\www\wordpress\buybyraffle_dcc92f760bee.json';
-        } elseif ($_SERVER['SERVER_ADDR'] === '138.68.91.147') {
-            $this->configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_dcc92f760bee.json';
-        } else {
-            $this->configFilePath = '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle_dcc92f760bee.json';
+        $environment = wp_get_environment_type();
+    
+        switch ($environment) {
+            case 'local':
+                // Set path for local environment
+                $this->configFilePath = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
+                break;
+            case 'staging':
+                // Set path for staging environment (assuming '138.68.91.147' is your staging server)
+                $this->configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';
+                break;
+            case 'production':
+                // Set path for production environment
+                $this->configFilePath = '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle-dcc92f760bee.json';
+                break;
+            default:
+                // Handle unexpected environment
+                $errorMessage = "Unexpected environment type: $environment";
+                error_log($errorMessage);
+
+                // Send an email notification
+                $to = 'terungwa@cashtoken.africa'; // Replace with your admin email address
+                $subject = 'Configuration Error in BuyByRaffle Plugin';
+                $message = "An error occurred in the BuyByRaffle plugin: $errorMessage";
+                $headers = 'From: admin@buybyraffle.com' . "\r\n"; // Replace with your from email address
+
+                if (!mail($to, $subject, $message, $headers)) {
+                    error_log('Failed to send email regarding environment configuration error.');
+                }
+
+                // Set a default configuration path or handle the error
+                //$this->configFilePath = '/path/to/default/config.json';
+                break;
         }
     }
+    
 
     /**
      * Retrieves the bearer token for authentication with Google Cloud APIs.
