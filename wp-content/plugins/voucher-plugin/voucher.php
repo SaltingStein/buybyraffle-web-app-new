@@ -152,7 +152,7 @@ function epin_management_page() {
             );
             $wpdb->insert($batch_table_name, $batch_data);
             //Add Batch ID
-            $batch_id = 'PGS-' . $wpdb->insert_id; // Concatenate "PGS" with the auto-incremented ID
+            $batch_id = 'PGS-'.time().'-'.$wpdb->insert_id; // Concatenate "PGS" with the auto-incremented ID
 
             // Update the batch with the generated batch ID
             $add_batch_id = $wpdb->update($batch_table_name, array('batch_id' => $batch_id), array('id' => $wpdb->insert_id));
@@ -169,56 +169,85 @@ function epin_management_page() {
                 $wpdb->insert($voucher_table_name, $voucher_data);
             }
 
-            // post  $batch_id to pubsub topic voucherPins, 
-            $pubSub = new PubSubClient([
-                'projectId' => 'buybyraffle', // Replace with your Google Cloud project ID
-            ]);
-
-            // Reference an existing topic
-            $topic = $pubSub->topic('sendvouchersbymail');
-
-            // Detect the environment using wp_get_environment_type()
-            $environment = wp_get_environment_type();
-
-            // Prepare the attributes for the message
-            $attributes = [
-                'batch_id' => $batch_id,
-                'environment' => $environment // This will be 'local', 'staging', 'development', 'production', or any custom value set in WP_ENVIRONMENT_TYPE
-            ];
-
-            // Prepare the data to be published
-            // Assuming you want to encode the batch_id as the data
-            $encodedData = base64_encode($batch_id);
-
-            // Prepare the message payload
-            $messagePayload = [
-                'messages' => [
-                    [
-                        'attributes' => $attributes,
-                        'data' => $encodedData,
-                    ],
-                ],
-            ];
-
-            // Publish the message
-            try {
-                // Attempt to publish the message
-                $topic->publish($messagePayload);
-            
-                // If successful, send a success email to the admin
-                $admin_email = get_option('admin_email');
-                $subject = 'Pub/Sub Publish Successful';
-                $message = 'Au user successfully generated voucher pins. They shall received their file shortly.';
-                wp_mail($admin_email, $subject, $message);
-            } catch (Exception $e) {
-                // If there is an error, send a failure email to the admin
-                $admin_email = get_option('admin_email');
-                $subject = 'Pub/Sub Publish Failed';
-                $message = 'There was an error publishing the voucher file to the queue: ' . $e->getMessage();
-                wp_mail($admin_email, $subject, $message);
-            }
+           // call the internal function to post to pubsub.
+           publish_batch_id_to_pubsub($batch_id);
     }
 } 
+/**
+ * Post batchID to pubsub
+ */
+function publish_batch_id_to_pubsub($batch_id) {
+    // Detect the environment using wp_get_environment_type()
+    $environment = wp_get_environment_type();
+
+    switch ($environment) {
+        case 'local':
+            // Set path for local environment
+            $configFilePath = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
+            break;
+        case 'staging':
+            // Set path for staging environment
+            $configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';
+            break;
+        case 'production':
+            // Set path for production environment
+            $configFilePath = '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle-dcc92f760bee.json';
+            break;
+        default:
+            // Handle unexpected environment
+            $errorMessage = "Unexpected environment type: $environment";
+            error_log($errorMessage);
+            return; // Optionally, return from the function if the environment is not recognized
+    }
+
+    // Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+    putenv('GOOGLE_APPLICATION_CREDENTIALS=' . $configFilePath);
+
+    // Initialize the PubSub client
+    $pubSub = new PubSubClient([
+        'projectId' => 'buybyraffle', // Replace with your Google Cloud project ID
+    ]);
+
+    // Reference an existing topic
+    $topic = $pubSub->topic('sendvouchersbymail');
+
+    // Prepare the attributes for the message
+    $attributes = [
+        'batch_id' => $batch_id,
+        'environment' => $environment
+    ];
+
+    // Prepare the data to be published
+    $encodedData = base64_encode($batch_id);
+
+    // Prepare the message payload
+    $messagePayload = [
+        'messages' => [
+            [
+                'attributes' => $attributes,
+                'data' => $encodedData,
+            ],
+        ],
+    ];
+
+    // Publish the message
+    try {
+        $topic->publish($messagePayload);
+
+        // If successful, send a success email to the admin
+        $admin_email = get_option('admin_email');
+        $subject = 'Pub/Sub Publish Successful';
+        $message = 'Au user successfully generated voucher pins. They shall receive their file shortly.';
+        wp_mail($admin_email, $subject, $message);
+    } catch (Exception $e) {
+        // If there is an error, send a failure email to the admin
+        $admin_email = get_option('admin_email');
+        $subject = 'Pub/Sub Publish Failed';
+        $message = 'There was an error publishing the voucher file to the queue: ' . $e->getMessage();
+        wp_mail($admin_email, $subject, $message);
+    }
+}
+
 // Use a library like PHPExcel to create Excel files
 include PGS_VOUCHERS . 'batches-table.php';
 include PGS_VOUCHERS . 'apis/get-voucher.php';
