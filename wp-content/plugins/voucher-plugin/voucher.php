@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: PGS Vouchers
+ * Plugin Name: BuyByRaffle Vouchers
  * Description: A WordPress plugin for generating and managing e-pins for vouchers.
- * Version: 1.0
+ * Version: 2.0
  * Author: SGS Team <Joseph>
  */
 
