@@ -11,7 +11,7 @@
  */
 function pgs_redeem_voucher($voucher_pin) {
     global $wpdb;
-    $voucher_table_name = $wpdb->prefix . 'epin_vouchers';
+    $voucher_table_name = $wpdb->prefix . 'buybyraffle_epin_vouchers';
 
     // Check if the voucher exists and is active.
     $voucher = $wpdb->get_row($wpdb->prepare(

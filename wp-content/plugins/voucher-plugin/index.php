@@ -1,2 +1,2 @@
 <?php
-//sshh
+//sshh is golden

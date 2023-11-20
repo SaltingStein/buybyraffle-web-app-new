@@ -1,0 +1,71 @@
+General Overview
+
+The "BuyByRaffle Vouchers" plugin is structured into several key directories and files, each serving specific purposes:
+
+    apis/: Contains PHP files that define REST API endpoints for voucher-related operations.
+    libraries/: Includes PHP scripts for various functionalities like publishing and consuming messages from Google Cloud Pub/Sub and voucher generation.
+    payment/: Holds the WooCommerce payment gateway integration file.
+    Root Directory: Contains the main plugin file (voucher.php), batch table creation script (batches-table.php), and Composer's configuration files (composer.json, composer.lock).
+
+Key Functionalities
+Voucher Management
+
+    Voucher Generation: Vouchers are generated and managed through a combination of REST API endpoints and background processes.
+    Database Interaction: Uses global $wpdb for direct interaction with the WordPress database, maintaining tables for batches and individual vouchers.
+    Voucher Redemption: Offers an endpoint for redeeming vouchers, changing their status from 'active' to 'used'.
+
+Google Cloud Pub/Sub Integration
+
+    Publishing Messages: Scripts in the libraries/ directory are responsible for publishing messages to specific topics in Google Cloud Pub/Sub.
+    Consuming Messages: The plugin consumes messages from Pub/Sub for asynchronous processing, such as generating voucher pins or sending voucher details via email.
+
+WooCommerce Integration
+
+    Provides a custom WooCommerce payment gateway (WC_Gateway_PGS_Voucher) that allows customers to pay using vouchers.
+
+REST API Endpoints
+
+    Endpoint Registration: Utilizes WordPress's REST API framework to register custom endpoints for various voucher operations like redeeming, fetching details, and sending vouchers by email.
+    JWT Authentication: Employs JWT for securing specific endpoints, ensuring that requests are authenticated and authorized.
+
+Security and Best Practices
+
+    Sanitization and Validation: Input data is sanitized and validated, particularly in REST API endpoints, to prevent security vulnerabilities.
+    Error Handling and Logging: Implements comprehensive error handling and logging mechanisms for easier debugging and monitoring.
+    Database Transactions: Uses transactions for critical operations to ensure data integrity.
+
+Plugin Activation and Usage
+
+    Upon activation, the plugin creates necessary database tables.
+    Admin users can manage vouchers through the WordPress admin panel and WooCommerce integration.
+    The plugin offers a seamless experience for end-users, allowing voucher redemption and management through REST API endpoints.
+
+Development and Deployment
+
+    Environment-Specific Configuration: The plugin uses different configurations for local, development, staging, and production environments, especially for Pub/Sub interactions.
+    Composer Dependencies: Manages third-party dependencies like Google API Client and Firebase PHP-JWT through Composer.
+
+Directory Structure:
+
+voucher-plugin
+-apis
+--get-voucher.php
+--redeem-voucher.php
+--sendvouchersbymail.php
+-libraries
+--blomFilter.php
+--pubsubConsumerVoucherGen.php
+--pubsubPublisherEmailVoucherCsv.php
+--pubsubPublisherVoucherGen.php
+-payment
+--wc-payment-gateway-voucher.php
+vendor
+batchers-table.php
+composer.json
+composer.lock
+index.php
+voucher.php
+
+Conclusion
+
+"BuyByRaffle Vouchers" is a comprehensive solution for managing e-pin vouchers in WordPress, featuring robust integration with WooCommerce and Google Cloud Pub/Sub. It provides secure and efficient mechanisms for voucher generation, redemption, and management, both through the WordPress admin interface and programmatically via REST API endpoints.

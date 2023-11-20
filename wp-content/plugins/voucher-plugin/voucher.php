@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BuyByRaffle Vouchers
  * Description: A WordPress plugin for generating and managing e-pins for vouchers.
- * Version: 2.0
+ * Version: 4.1
  * Author: SGS Team <Joseph>
  */
 
@@ -10,7 +10,7 @@
 require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
 
 use Google\Cloud\PubSub\PubSubClient;
-
+use Google\Client;
 
 /**
  * Define the plugin directory path as a constant for easy access throughout the plugin.
@@ -34,52 +34,45 @@ add_action('plugins_loaded', 'include_pgs_payment_gateway_file');
  */
 register_activation_hook(__FILE__, 'epin_plugin_activate');
 function epin_plugin_activate() {
-    // Create tables for batches and vouchers...
     global $wpdb;
     update_option('pgs_voucher_denomination', '200');
-    $batch_table_name = $wpdb->prefix . 'epin_batches';
-    $voucher_table_name = $wpdb->prefix . 'epin_vouchers';
-
+    $batch_table_name = $wpdb->prefix . 'buybyraffle_epin_batches';
+    $voucher_table_name = $wpdb->prefix . 'buybyraffle_epin_vouchers';
     $charset_collate = $wpdb->get_charset_collate();
 
-    // Create the batch table
-    $batch_table_sql = "CREATE TABLE  IF NOT EXISTS $batch_table_name (
+    // Create the batch table with InnoDB engine
+    $batch_table_sql = "CREATE TABLE IF NOT EXISTS $batch_table_name (
         id INT NOT NULL AUTO_INCREMENT,
-        batch_id VARCHAR(36) NOT NULL,
+        batch_id VARCHAR(15) NOT NULL,
         created_by INT NOT NULL,
         denomination DECIMAL(10, 2) NOT NULL,
         number_of_pins INT NOT NULL,
-        status VARCHAR(20) NOT NULL,
+        generation_status TINYINT(1) NOT NULL DEFAULT 0,
+        active_status TINYINT(1) NOT NULL DEFAULT 0,
         date_created DATETIME NOT NULL,
-        PRIMARY KEY (id)
-    ) $charset_collate;";
+        PRIMARY KEY (id),
+        INDEX (batch_id)
+    ) $charset_collate ENGINE=InnoDB;";
+
+    // Create the voucher table with InnoDB engine
+    $voucher_table_sql = "CREATE TABLE IF NOT EXISTS $voucher_table_name (
+        id INT NOT NULL AUTO_INCREMENT,
+        voucher_pin VARCHAR(15) NOT NULL,
+        balance SMALLINT(4) NOT NULL DEFAULT 0,
+        batch_id VARCHAR(10) NOT NULL,
+        active_status TINYINT(1) NOT NULL DEFAULT 0,
+        PRIMARY KEY (id),
+        INDEX (voucher_pin)
+    ) $charset_collate ENGINE=InnoDB;";
+
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($batch_table_sql);
-
-    // Create the voucher table
-    $voucher_table_sql = "CREATE TABLE  IF NOT EXISTS $voucher_table_name (
-        id INT NOT NULL AUTO_INCREMENT,
-        voucher_pin VARCHAR(10) NOT NULL,
-        batch_id VARCHAR(36) NOT NULL,
-        status VARCHAR(20) NOT NULL,
-        PRIMARY KEY (id)
-    ) $charset_collate;";
     dbDelta($voucher_table_sql);
 }
 
-/**
- * Generates a random 10-digit pin for vouchers.
- * 
- * @return string $pin The generated 10-digit random pin.
- */
-function generate_random_pin() {
-    // Function content remains unchanged...
-    $pin = '';
-    for ($i = 0; $i < 10; $i++) {
-        $pin .= rand(0, 9);
-    }
-    return $pin;
-}
+
+
+
 
 /**
  * Adds a menu item for E-Pin Management in the WordPress admin menu.
@@ -95,8 +88,22 @@ add_action('admin_menu', 'epin_management_menu');
  * This page includes a form for generating new pins.
  */
 function epin_management_page() {
-    // Check user capability and display the form...
-    // The form includes a nonce field for security.
+    // Initialize an array for error messages
+    $error_messages = array();
+        // Allowed denominations
+        $allowed_denominations = array(200, 400, 600, 800, 1000);
+        // Check if redirected after form processing
+        if (isset($_GET['epin_published'])) {
+            $pubsub_result = get_option('_epin_pubsub_result');
+            if ($pubsub_result) {
+                if ($pubsub_result === 'success') {
+                    echo '<div class="notice notice-success"><p>Vouchers generation request was successfully submitted. Please check your email for the CSV file in 10 seconds to 5 minutes.</p></div>';
+                } elseif ($pubsub_result === 'error') {
+                    echo '<div class="notice notice-error"><p>Failed to submit voucher generation request. Please try to generate the voucher again.</p></div>';
+                }
+                delete_transient('epin_pubsub_result');
+            }
+        }
     
     ?>
     <div class="wrap">
@@ -105,6 +112,13 @@ function epin_management_page() {
             <label for="num_pins">Number of Pins to Generate:</label>
             <?php wp_nonce_field('generate_pins_action', 'generate_pins_nonce'); ?>
             <input type="text" id="num_pins" name="num_pins"><br>
+            <select id="pin_denomination" name="pin_denomination">
+                <?php foreach ($allowed_denominations as $denomination): ?>
+                    <option value="<?php echo esc_attr($denomination); ?>">
+                        <?php echo esc_html($denomination); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
             <br>
             <!-- <label for="denomination">Denomination:</label>
             <input type="text" id="denomination" disabled value="200" name="denomination"><br>
@@ -122,133 +136,103 @@ function epin_management_page() {
      * Also generates an Excel file with the new pins and possibly send email...
      */
     if (isset($_POST['generate_pins'])) {
-            // Check the nonce value for security
-            if (!isset($_POST['generate_pins_nonce']) || !wp_verify_nonce($_POST['generate_pins_nonce'], 'generate_pins_action')) {
-                wp_die(__('Sorry, your nonce did not verify.', 'text-domain'));
-            }
         
-            // Check user capability
-            if (!current_user_can('manage_options')) {
-                wp_die(__('You do not have sufficient permissions to access this page.'));
-            }
+        // Check the nonce value for security
+        if (!isset($_POST['generate_pins_nonce']) || !wp_verify_nonce($_POST['generate_pins_nonce'], 'generate_pins_action')) {
+            $error_messages[] = 'Sorry, your nonce did not verify.';
+        }
         
-            // Sanitize and validate form input
-            $num_pins = isset($_POST['num_pins']) ? intval(sanitize_text_field($_POST['num_pins'])) : 0;
-            global $wpdb;
+        // Check user capability
+        if (!current_user_can('manage_options')) {
+            $error_messages[] = 'You do not have sufficient permissions to access this page.';
+        }
+        
+        // Sanitize and validate form input
+        $num_pins = isset($_POST['num_pins']) ? intval(sanitize_text_field($_POST['num_pins'])) : 0;
+         // Check if num_pins is a positive integer and within the set limit
+        $max_pins_limit = 100000; // Define the maximum limit
+       
+        // Add errors to the error_messages array instead of using wp_die()
+        if ($num_pins <= 0 || $num_pins > $max_pins_limit) {
+            $error_messages[] = 'The number of pins must be a positive integer and cannot exceed ' . $max_pins_limit . ' at a time.';
+        }
+        // Validate submitted denomination
+        $pin_denomination = isset($_POST['pin_denomination']) ? intval($_POST['pin_denomination']) : 0;
+        if (!in_array($pin_denomination, $allowed_denominations)) {
+            $error_messages[] = 'Invalid denomination value.';
+        }
+        
+        global $wpdb;
+        // If there are no errors, process the form
+        if (empty($error_messages)) {
             $current_user = wp_get_current_user();
             $user_id = $current_user->ID;
+            $user_email = $current_user->user_email;
             $username = $current_user->user_login;
-            $batch_table_name = $wpdb->prefix . 'epin_batches';
-            $voucher_table_name = $wpdb->prefix . 'epin_vouchers';
-            $denomination = floatval(get_option('pgs_voucher_denomination'));
+            $batch_table_name = $wpdb->prefix . 'buybyraffle_epin_batches';
+            //$voucher_table_name = $wpdb->prefix . 'epin_vouchers';
+            //$denomination = floatval(get_option('pgs_voucher_denomination'));
             $date_created = current_time('mysql');
             // Insert a record in the batch table
             $batch_data = array(
                 'created_by' => $user_id,
                 'number_of_pins' => $num_pins,
-                'denomination' => $denomination,
-                'status' => 'active',
+                'denomination' => $pin_denomination,
+                'generation_status' => 0,
+                'active_status' => 0,
                 'date_created' => $date_created,
             );
             $wpdb->insert($batch_table_name, $batch_data);
+            $lastInsertID = $wpdb->insert_id;
             //Add Batch ID
-            $batch_id = 'PGS-'.time().'-'.$wpdb->insert_id; // Concatenate "PGS" with the auto-incremented ID
-
+            $batch_id = 'PGS-'.$lastInsertID; // Concatenate "PGS" with the auto-incremented ID
             // Update the batch with the generated batch ID
-            $add_batch_id = $wpdb->update($batch_table_name, array('batch_id' => $batch_id), array('id' => $wpdb->insert_id));
-            // Generate e-pins and insert them into the voucher table
-            $pins = array();
-            for ($i = 0; $i < $num_pins; $i++) {
-                $pin = generate_random_pin(); // Implement this function to generate a random 10-digit pin
-                $pins[] = $pin;
-                $voucher_data = array(
-                    'voucher_pin' => $pin,
-                    'batch_id' => $batch_id,
-                    'status' => 'active',
-                );
-                $wpdb->insert($voucher_table_name, $voucher_data);
-            }
-
-           // call the internal function to post to pubsub.
-           publish_batch_id_to_pubsub($batch_id);
+            $add_batch_id = $wpdb->update($batch_table_name, array('batch_id' => $batch_id), array('id' => $lastInsertID));
+            
+            // call the internal function to post to pubsub.
+            pubsubPublisherVoucherGen($lastInsertID, $user_email);
+            // After processing, redirect back to the same page
+            wp_redirect(add_query_arg('epin_published', '1', menu_page_url('epin-management', false)));
+            exit;
+        }
     }
-} 
-/**
- * Post batchID to pubsub
- */
-function publish_batch_id_to_pubsub($batch_id) {
-    // Detect the environment using wp_get_environment_type()
-    $environment = wp_get_environment_type();
-
-    switch ($environment) {
-        case 'local':
-            // Set path for local environment
-            $configFilePath = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
-            break;
-        case 'staging':
-            // Set path for staging environment
-            $configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';
-            break;
-        case 'production':
-            // Set path for production environment
-            $configFilePath = '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle-dcc92f760bee.json';
-            break;
-        default:
-            // Handle unexpected environment
-            $errorMessage = "Unexpected environment type: $environment";
-            error_log($errorMessage);
-            return; // Optionally, return from the function if the environment is not recognized
-    }
-
-    // Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
-    putenv('GOOGLE_APPLICATION_CREDENTIALS=' . $configFilePath);
-
-    // Initialize the PubSub client
-    $pubSub = new PubSubClient([
-        'projectId' => 'buybyraffle', // Replace with your Google Cloud project ID
-    ]);
-
-    // Reference an existing topic
-    $topic = $pubSub->topic('sendvouchersbymail');
-
-    // Prepare the attributes for the message
-    $attributes = [
-        'batch_id' => $batch_id,
-        'environment' => $environment
-    ];
-
-    // Prepare the data to be published
-    $encodedData = base64_encode($batch_id);
-
-    // Prepare the message payload
-    $messagePayload = [
-        'messages' => [
-            [
-                'attributes' => $attributes,
-                'data' => $encodedData,
-            ],
-        ],
-    ];
-
-    // Publish the message
-    try {
-        $topic->publish($messagePayload);
-
-        // If successful, send a success email to the admin
-        $admin_email = get_option('admin_email');
-        $subject = 'Pub/Sub Publish Successful';
-        $message = 'Au user successfully generated voucher pins. They shall receive their file shortly.';
-        wp_mail($admin_email, $subject, $message);
-    } catch (Exception $e) {
-        // If there is an error, send a failure email to the admin
-        $admin_email = get_option('admin_email');
-        $subject = 'Pub/Sub Publish Failed';
-        $message = 'There was an error publishing the voucher file to the queue: ' . $e->getMessage();
-        wp_mail($admin_email, $subject, $message);
+    // Display error messages if any
+    if (!empty($error_messages)) {
+        echo '<div class="notice notice-error">';
+        foreach ($error_messages as $message) {
+            echo '<p>' . esc_html($message) . '</p>';
+        }
+        echo '</div>';
     }
 }
 
-// Use a library like PHPExcel to create Excel files
+function getBearerToken($configFilePath) {
+    try {
+        $client = new Client();
+        $client->setAuthConfig($configFilePath);
+        $client->setScopes(['https://www.googleapis.com/auth/cloud-platform']);
+
+        // Fetch the access token
+        $accessToken = $client->fetchAccessTokenWithAssertion();
+
+        // Return the access token
+        if (isset($accessToken['access_token'])) {
+            return $accessToken['access_token'];
+        } else {
+            throw new Exception('Failed to fetch access token');
+        }
+    } catch (Exception $e) {
+        // Handle exceptions, such as file not found or invalid credentials
+        error_log('Exception in getBearerToken: ' . $e->getMessage());
+        throw $e; // Rethrow the exception for the caller to handle
+    }
+}
+
+include PGS_VOUCHERS . 'libraries/pubsubPublishEmailVoucherCsv.php';
+include PGS_VOUCHERS . 'libraries/pubsubPublisherVoucherGen.php'; 
+include PGS_VOUCHERS . 'libraries/pubsubConsumerVoucherGen.php'; 
+
 include PGS_VOUCHERS . 'batches-table.php';
 include PGS_VOUCHERS . 'apis/get-voucher.php';
 include PGS_VOUCHERS . 'apis/redeem-voucher.php'; 
+include PGS_VOUCHERS . 'apis/sendvouchersbymail.php'; 

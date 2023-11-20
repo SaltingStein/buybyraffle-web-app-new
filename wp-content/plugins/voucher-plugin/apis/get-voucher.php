@@ -1,4 +1,5 @@
 <?php
+// found in the get-voucher.php file
 // Register a custom REST API route to get voucher details by voucher_pin
 function get_voucher_details($request) {
     // Get the voucher_pin from the request parameters
@@ -8,7 +9,7 @@ function get_voucher_details($request) {
     }
     // Query the database to fetch the voucher details
     global $wpdb;
-    $voucher_table_name = $wpdb->prefix . 'epin_vouchers';
+    $voucher_table_name = $wpdb->prefix . 'buybyraffle_epin_vouchers';
     $voucher_details = $wpdb->get_row(
         $wpdb->prepare("SELECT status, batch_id, date_created FROM $voucher_table_name WHERE voucher_pin = %s", $voucher_pin),
         ARRAY_A

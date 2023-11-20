@@ -1,6 +1,7 @@
 <?php
 /**
  * WooCommerce Payment Gateway - Pay with Voucher
+ * found in the payment folder
  */
 
 if (!defined('ABSPATH')) {
