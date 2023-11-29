@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BuyByRaffle Vouchers
  * Description: A WordPress plugin for generating and managing e-pins for vouchers.
- * Version: 4.1
+ * Version: 4.11
  * Author: SGS Team <Joseph>
  */
 
@@ -92,7 +92,7 @@ function epin_management_page() {
     $error_messages = array();
         // Allowed denominations
         $allowed_denominations = array(200, 400, 600, 800, 1000);
-        // Check if redirected after form processing
+        // Check if redirected after form processing 
         if (isset($_GET['epin_published'])) {
             $pubsub_result = get_option('_epin_pubsub_result');
             if ($pubsub_result) {
@@ -101,7 +101,6 @@ function epin_management_page() {
                 } elseif ($pubsub_result === 'error') {
                     echo '<div class="notice notice-error"><p>Failed to submit voucher generation request. Please try to generate the voucher again.</p></div>';
                 }
-                delete_transient('epin_pubsub_result');
             }
         }
     
@@ -112,6 +111,8 @@ function epin_management_page() {
             <label for="num_pins">Number of Pins to Generate:</label>
             <?php wp_nonce_field('generate_pins_action', 'generate_pins_nonce'); ?>
             <input type="text" id="num_pins" name="num_pins"><br>
+
+			<label for="pin_denomination">Select Denomination:</label>
             <select id="pin_denomination" name="pin_denomination">
                 <?php foreach ($allowed_denominations as $denomination): ?>
                     <option value="<?php echo esc_attr($denomination); ?>">

@@ -45,6 +45,8 @@ function pubsubConsumerVoucherGen($lastInsertID, $user_email) {
         // Set generation status to 2 (completed)
         $wpdb->update($batch_table_name, array('generation_status' => 2), array('id' => $lastInsertID));
         $wpdb->query('COMMIT');
+        // call the send email publish to pubsub here
+        pubsubPublishEmailVoucherCsv($lastInsertID, $user_email);
         return new WP_REST_Response("Success", 200);
         //return rest_ensure_response(array('message' => 'Voucher generation completed successfully.'));
     } catch (Exception $e) {

@@ -1,13 +1,17 @@
 <?php 
 function generateRaffleTicket($length = 12) {
+    $characters = '23456789abcdefghijkmnprstuvwxyz'; // Excluded 0, 1, O, I, l, Z
+    $ticket = '';
     try {
-        // Generate a string of random bytes and convert to a hex string
-        return bin2hex(random_bytes($length));
+        for ($i = 0; $i < $length; $i++) {
+            $index = random_int(0, strlen($characters) - 1);
+            $ticket .= $characters[$index];
+        }
     } catch (Exception $e) {
-        // Log and handle the exception if random_bytes fails
-        error_log('Error generating random bytes: ' . $e->getMessage());
+        error_log('Error generating random alphanumeric string: ' . $e->getMessage());
         return null;
     }
+    return $ticket;
 }
 
 function isValueUnique($tableName, $columnName, $value) {
