@@ -32,10 +32,10 @@ class BuyByRaffleCashTokenGifting {
         $eventObj = json_decode($input);
 
         $order_id = $eventObj->order_id;
-        $sns_status = get_post_meta($order_id, '_customer_gifted', true);
+        $customer_gifted = get_post_meta($order_id, '_customer_gifted', true);
 
-        if ($sns_status === 'true' || $sns_status === 'processing') {
-            return $this->returnStatusCode($sns_status === 'true' ? 200 : 500);
+        if ($customer_gifted === true || $customer_gifted === 'processing') {
+            return $this->returnStatusCode($customer_gifted === 'true' ? 200 : 500);
         }
 
         return $this->processGifting($order_id);

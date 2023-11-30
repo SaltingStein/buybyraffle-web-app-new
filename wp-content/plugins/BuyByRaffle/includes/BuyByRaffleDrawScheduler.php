@@ -35,7 +35,7 @@ class BuyByRaffleDrawScheduler {
     if ( has_term( 'bait', 'product_tag', $product_id ) && 'outofstock' === $new_stock_status ) {
       // Insert a draw event into the wp_buybyraffle_queued_raffles table.
       $insert_result = $wpdb->insert(
-        'wp_buybyraffle_queued_raffles',
+        $wpdb->prefix.'buybyraffle_queued_raffles',
         array(
           'raffle_cycle_id' => $product_id,
           'status'          => 'waiting',

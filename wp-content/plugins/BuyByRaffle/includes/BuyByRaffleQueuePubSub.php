@@ -88,6 +88,10 @@ class BuyByRaffleQueuePubSub extends WP_REST_Controller {
                 // Set path for local environment
                 $this->configFilePath = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
                 break;
+            case 'development':
+                // Set path for local environment
+                $this->configFilePath = 'C:\xampp\htdocs\wordpress\buybyraffle-dcc92f760bee.json';
+                break;    
             case 'staging':
                 // Set path for staging environment (assuming '138.68.91.147' is your staging server)
                 $this->configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';

@@ -105,8 +105,10 @@ class BuyByRaffleCycleHandler {
         $environment = wp_get_environment_type();
     
         switch ($environment) {
-            case 'development':
+            case 'local':
                 return 'C:\wamp64\www\wordpress\buybyraffle_local_env.json';
+            case 'development':
+                return 'C:\xampp\htdocs\wordpress\buybyraffle_local_env.json';
             case 'staging':
                 return '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_env.json';
             case 'production':

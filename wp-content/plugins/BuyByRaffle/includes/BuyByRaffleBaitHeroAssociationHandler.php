@@ -34,7 +34,7 @@ class BuyByRaffleBaitHeroAssociationHandler {
         if ('product' === $post_type) {
             // Update the status of the bait-hero association for this bait product to 'inactive' or 'deleted'
             $wpdb->update(
-                'wp_buybyraffle_bait_hero_association',
+                $wpdb->prefix.'buybyraffle_bait_hero_association',
                 array('status' => 'deleted'),  // or 'deleted', depending on your status taxonomy
                 array('bait_id' => $post_ID),
                 array('%s'),  // value type
@@ -59,7 +59,7 @@ class BuyByRaffleBaitHeroAssociationHandler {
         if ($new_status !== 'publish' && $old_status === 'publish') {
             // Update the status of the bait-hero association for this bait product to 'inactive'
             $wpdb->update(
-                'wp_buybyraffle_bait_hero_association',
+                $wpdb->prefix.'buybyraffle_bait_hero_association',
                 array('status' => 'unpublished'),  // or 'deleted', depending on your status taxonomy
                 array('bait_id' => $post->ID),
                 array('%s'),  // value type

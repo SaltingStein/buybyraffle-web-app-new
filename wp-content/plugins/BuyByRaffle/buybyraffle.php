@@ -17,7 +17,6 @@
 // Your plugin's main code starts here.
 
 
-
 // Prevent direct file access.
 defined('WPINC') or die;
 
@@ -26,6 +25,7 @@ define('BUYBYRAFFLE_VERSION', '1.0.0');
 
 // Include Composer's autoloader to manage dependencies.
 require_once __DIR__ . '/vendor/autoload.php';
+
 
 /**
  * Enqueues admin-specific scripts.
@@ -165,3 +165,4 @@ if (!is_admin() && !BuyByRaffle::is_woocommerce_active()) {
     deactivate_plugins(plugin_basename(__FILE__));
     wp_die(__('This plugin requires WooCommerce to be activated.', 'buybyraffle'));
 }
+include ABSPATH .'wp-content/plugins/BuyByRaffle/buybyraffleorders.php';

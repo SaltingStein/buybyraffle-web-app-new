@@ -22,20 +22,27 @@ jQuery(document).ready(function($) {
     // Define a function to toggle the disabled state of the submit button
     function toggleSubmitButtonState() {
         var productTag = $('#product-tag').val();
-        var shouldDisable = productTag === 'bait' && !$('#associated_hero_id').val();
-        submitButton.prop('disabled', shouldDisable || productTag === '');
+        var raffleType = $('#raffle_type').val(); // Assuming 'raffle_type' is the ID of your raffle type field
+        var shouldDisable = !raffleType || (productTag === 'bait' && !$('#associated_hero_id').val());
+        submitButton.prop('disabled', shouldDisable);
     }
 
     // Event handler for when the product tag dropdown changes
-    $('#product-tag').change(function() {
-        toggleHeroProductField();
-        toggleSubmitButtonState();
+    // $('#product-tag').change(function() {
+    //     toggleHeroProductField();
+    //     toggleSubmitButtonState();
         
-        // AJAX logic remains the same as your original, only executed if 'bait' is selected
-    });
+    //     // AJAX logic remains the same as your original, only executed if 'bait' is selected
+    // });
+
+    // Event handler for when the product tag dropdown changes
+    $('#product-tag').change(toggleHeroProductField);
 
     // Event handler for when the hero product dropdown changes
-    $('#associated_hero_id').change(toggleSubmitButtonState);
+    $('#associated_hero_id').change(toggleSubmitButtonState); 
+    
+    // Event handler for the raffle type field
+    $('#raffle_type').change(toggleSubmitButtonState);
 
     // Call the function to set the initial state on page load
     toggleHeroProductField();

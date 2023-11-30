@@ -93,16 +93,14 @@ class BuyByRaffleTableInstallerHandler {
      * @param string $charset_collate The character set and collation for the table.
      */
     private static function createQueuedRaffleTable($wpdb, $charset_collate) {
-        // Your code for creating the Queued Raffle table here
         $queued_raffle_table_name = $wpdb->prefix . 'buybyraffle_queued_raffles';
-        if($wpdb->get_var("SHOW TABLES LIKE '$queued_raffle_table_name'") != $queued_raffle_table_name) {
-            // SQL for creating table
+        if ($wpdb->get_var("SHOW TABLES LIKE '$queued_raffle_table_name'") != $queued_raffle_table_name) {
             $queued_raffle_sql = "CREATE TABLE $queued_raffle_table_name (
-                `task_id` int UNSIGNED NOT NULL AUTO_INCREMENT,
-                `raffle_cycle_id` mediumint NOT NULL,
-                `status` enum('pending','processing','completed','cancelled') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'pending',
-                `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                `task_id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Primary key, unique identifier for each queued raffle task',
+                `raffle_cycle_id` mediumint NOT NULL COMMENT 'ID of the raffle cycle associated with the task',
+                `status` enum('pending','processing','completed','cancelled') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'pending' COMMENT 'Current status of the queued task (pending, processing, completed, cancelled)',
+                `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of when the queued task was created',
+                `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Timestamp of the last update to the queued task',
                 PRIMARY KEY (`task_id`),
                 UNIQUE KEY `raffle_cycle_id` (`raffle_cycle_id`)
             ) $charset_collate;";
@@ -111,6 +109,7 @@ class BuyByRaffleTableInstallerHandler {
             dbDelta($queued_raffle_sql);
         }
     }
+    
 
     /**
      * Create Bait-Hero Association Table
@@ -156,25 +155,28 @@ class BuyByRaffleTableInstallerHandler {
      */
     private static function createHeroProductsTable($wpdb, $charset_collate) {
         $table_name = $wpdb->prefix . 'buybyraffle_product_config';
-        if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
             $sql = "CREATE TABLE $table_name (
-               `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
-                `product_id` int NOT NULL,
-                `raffle_class_id` enum('1','2','3') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
-                `raffle_cycle_id` mediumint NOT NULL,
-                `accumulated_sales_value` decimal(9,2) DEFAULT NULL,
-                `status` enum('open','invalid','running','redeemed') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'open',
-                `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+               `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Primary key, unique identifier for each record',
+                `product_id` int NOT NULL COMMENT 'ID of the product',
+                `raffle_class_id` smallint NOT NULL COMMENT 'Raffle class ID (1: bait, 2: hero, 3: solo)',
+                `raffle_type_id` smallint NOT NULL COMMENT 'Raffle type ID (1: BuyByRaffle, 2: PayByRaffle, 3: TransferByRaffle)',
+                `raffle_cycle_id` mediumint NOT NULL COMMENT 'ID of the raffle cycle',
+                `accumulated_sales_value` decimal(9,2) DEFAULT NULL COMMENT 'Accumulated sales value for the product',
+                `status` enum('open','invalid','running','redeemed') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'open' COMMENT 'Status of the raffle (open, invalid, running, redeemed)',
+                `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of when the record was created',
+                `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Timestamp of the last update to the record',
                 PRIMARY KEY (`id`),
                 UNIQUE KEY `raffle_cycle_id` (`raffle_cycle_id`),
-                KEY `product_id` (`product_id`)
+                KEY `product_id` (`product_id`),
+                KEY `composite_index` (`product_id`, `raffle_type_id`, `raffle_cycle_id`)
             ) $charset_collate;";
             
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             dbDelta($sql);
         }
     }
+    
     private static function createErrorLogTable($wpdb, $charset_collate) {
         $table_name = $wpdb->prefix . 'buybyraffle_error_logs';
     
@@ -198,17 +200,17 @@ class BuyByRaffleTableInstallerHandler {
     
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
             $sql = "CREATE TABLE $table_name (
-                `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-                `user_id` bigint NOT NULL,
-                `order_id` bigint NOT NULL,
-                `status` enum('0','1','2','3') NOT NULL DEFAULT '0',
-                `pubsub_message_id` varchar(11) NOT NULL,
-                `logged_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier for each log entry',
+                `user_id` bigint NOT NULL COMMENT 'ID of the user involved in the cashtoken gifting',
+                `order_id` bigint NOT NULL COMMENT 'ID of the order associated with the cashtoken gifting',
+                `status` enum('0','1','2','3') NOT NULL DEFAULT '0' COMMENT 'Status of the gifting process (0: pending, 1: processing, 2: completed, 3: failed)',
+                `pubsub_message_id` varchar(11) NOT NULL COMMENT 'Message ID related to the pubsub system used',
+                `logged_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of when the log entry was created',
+                `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Timestamp of the last update to the log entry',
                 PRIMARY KEY (`id`),
                 KEY `user_id` (`user_id`),
                 KEY `order_id` (`order_id`)
-            ) $charset_collate COMMENT='Table for logging cashtoken gifting';";
+            ) $charset_collate COMMENT='Table for logging cashtoken gifting events';";
             
     
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');

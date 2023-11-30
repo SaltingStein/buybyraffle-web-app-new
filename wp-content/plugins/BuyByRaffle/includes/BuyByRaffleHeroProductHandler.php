@@ -99,6 +99,11 @@ class BuyByRaffleHeroProductHandler {
                 $tag = sanitize_text_field($_POST['product-tag']);
                 update_post_meta($post_id, 'product-tag', $tag);
             }
+            // Check if the raffle type field is set
+            if (!isset($_POST['raffle_type']) || empty($_POST['raffle_type'])) {
+                throw new Exception('Raffle type must be selected.');
+            }
+            $raffle_type_id = intval($_POST['raffle_type']);
             // Sanitize and save the custom fields using the existing meta keys
             if (isset($_POST['product-tag'])) {
                 $tag = sanitize_text_field($_POST['product-tag']);
@@ -120,7 +125,7 @@ class BuyByRaffleHeroProductHandler {
                         throw new Exception('Invalid Hero Product ID provided.');
                     }
                     update_post_meta($post_id, 'associated_hero_id', $hero_id);
-                   $raffle_cycle_id_bait = $this->create_product_configuration($post_id, $raffle_class_id, get_post($post_id), $this->cycleHandler, false);
+                   $raffle_cycle_id_bait = $this->create_product_configuration($post_id, $raffle_class_id, $raffle_type_id, get_post($post_id), $this->cycleHandler, false);
                     error_log($raffle_cycle_id_bait);
                 // Assuming create_product_configuration returns false or a null-equivalent value on failure
                 if ($raffle_cycle_id_bait) {
@@ -142,7 +147,7 @@ class BuyByRaffleHeroProductHandler {
                 $hero_id = $post_id;
                 // Retrieve the raffle class ID for 'bait'
                 $raffle_class_id = BuyByRaffleRaffleClassMgr::get_raffle_class_id_by_name('hero');
-                $this->create_product_configuration($post_id, $raffle_class_id, get_post($post_id), $this->cycleHandler, false);
+                $this->create_product_configuration($post_id, $raffle_class_id, $raffle_type_id, get_post($post_id), $this->cycleHandler, false);
                 //update_post_meta($post_id, 'associated_hero_id', $hero_id);
             }elseif ($tag === 'solo') {
                 // Ensure no association for 'solo' tags
@@ -182,7 +187,20 @@ class BuyByRaffleHeroProductHandler {
                 <?php
                 // Inside the bbr_config_product_data_fields method, just before or after the select fields
                 wp_nonce_field('bbr_config_nonce_action', 'bbr_config_nonce');
-
+                // Raffle Type Selection
+                woocommerce_wp_select(array(
+                    'id' => 'raffle_type',
+                    'label' => __('Raffle Type', 'your-domain'),
+                    'options' => array(
+                        '' => 'Select a Raffle Type',
+                        '1' => 'BuyByRaffle',
+                        '2' => 'PayByRaffle',
+                        '3' => 'TransferByRaffle'
+                    ),
+                    'description' => __('Choose the type of raffle for this product.', 'your-domain'),
+                    'desc_tip' => true,
+                    'custom_attributes' => array('required' => 'required'),
+                ));
                 woocommerce_wp_select(array(
                     'id' => 'product-tag',
                     'label' => __('Product Tag', 'your-domain'),
@@ -194,7 +212,7 @@ class BuyByRaffleHeroProductHandler {
                     ),
                     'value' => $current_tag,
                     'custom_attributes' => array('required' => 'required'), // Ensure the select is always required
-                ));
+                ));                
     
                 woocommerce_wp_select(array(
                     'id' => 'associated_hero_id',
@@ -317,7 +335,7 @@ class BuyByRaffleHeroProductHandler {
      * @param WP_Post $post The post object.
      * @param bool    $update Whether this is an existing post being updated or not.
      */
-    public function create_product_configuration($post_ID, $raffle_class_id, $post, $cycleHandler, $update) {
+    public function create_product_configuration($post_ID, $raffle_class_id, $raffle_type_id, $post, $cycleHandler, $update) {
         // If it's not a product or if it's a WordPress autosave, return early
         //error_log(print_r($post, true));
         if ($post->post_type !== 'product' || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)) {
@@ -362,14 +380,17 @@ class BuyByRaffleHeroProductHandler {
                 }else{
                     $raffle_cycle_id = $raffle_cycle_id[0];
                     // Either no entry exists, or existing entries are only 'redeemed'
+                    
+
                     // Prepare the data for a new entry or update
                     $data = array(
                         'product_id' => $post_ID,
-                        'raffle_cycle_id' => $raffle_cycle_id,
-                        'status' => 'open',
-                        'raffle_class_id' => $raffle_class_id
+                        'raffle_class_id' => $raffle_class_id,
+                        'raffle_type_id' => $raffle_type_id, // Include raffle_type_id in the data array
+                        'raffle_cycle_id' => $raffle_cycle_id, // Assuming raffle_cycle_id is obtained earlier
+                        'status' => 'open' // Example status, adjust as necessary
                     );
-                    $format = array('%d', '%d', '%s', '%d');
+                    $format = array('%d', '%d', '%d', '%d', '%s'); // Update the format array to match the data
 
                     // Check if an entry with status 'redeemed' exists
                     $existing_redeemed_entry = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE product_id = %d AND status = %s", $post_ID, 'redeemed'));
@@ -522,7 +543,7 @@ class BuyByRaffleHeroProductHandler {
             if (null === $existing_association) {
                 // Insert new association
                 $wpdb->insert(
-                    'wp_buybyraffle_bait_hero_association',
+                    $wpdb->prefix.'buybyraffle_bait_hero_association',
                     array(
                         'bait_id' => $post_ID,
                         'hero_id' => $hero_id,
@@ -534,7 +555,7 @@ class BuyByRaffleHeroProductHandler {
             } else {
                 // Update existing association
                 $wpdb->update(
-                    'wp_buybyraffle_bait_hero_association',
+                    $wpdb->prefix.'buybyraffle_bait_hero_association',
                     array('updated_date' => current_time('mysql')),
                     array('id' => $existing_association),
                     array('%s'),
