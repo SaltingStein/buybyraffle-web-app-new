@@ -1,1 +1,0 @@
-Please read the document on the download package.

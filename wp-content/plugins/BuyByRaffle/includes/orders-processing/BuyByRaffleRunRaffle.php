@@ -1,7 +1,9 @@
 <?php
 
-//use Sgs\Buybyraffle\BuyByRaffleEnvConfig;
+
+use Sgs\Buybyraffle\BuyByRaffleEnvConfig;
 require_once plugin_dir_path(__FILE__) . '../../../BuyByRaffleEnvConfig/app.php';
+
 
 function BuyByRaffleRunRaffle($raffle_cycle_id) {
     global $configurations;

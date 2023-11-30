@@ -40,27 +40,27 @@ function epin_plugin_activate() {
     $voucher_table_name = $wpdb->prefix . 'buybyraffle_epin_vouchers';
     $charset_collate = $wpdb->get_charset_collate();
 
-    // Create the batch table with InnoDB engine
+    // Create the batch table with comments on columns
     $batch_table_sql = "CREATE TABLE IF NOT EXISTS $batch_table_name (
         id INT NOT NULL AUTO_INCREMENT,
-        batch_id VARCHAR(15) NOT NULL,
-        created_by INT NOT NULL,
-        denomination DECIMAL(10, 2) NOT NULL,
-        number_of_pins INT NOT NULL,
-        generation_status TINYINT(1) NOT NULL DEFAULT 0,
-        active_status TINYINT(1) NOT NULL DEFAULT 0,
-        date_created DATETIME NOT NULL,
+        batch_id VARCHAR(15) NOT NULL COMMENT 'Unique identifier for each batch',
+        created_by INT NOT NULL COMMENT 'ID of the user who created the batch',
+        denomination DECIMAL(10, 2) NOT NULL COMMENT 'Denomination value of the e-pins',
+        number_of_pins INT NOT NULL COMMENT 'Number of e-pins to generate in the batch',
+        generation_status TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Generation status: 0-Pending, 1-Processing, 2-Completed',
+        active_status TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Active status: 0-Pending, 1-Processing, 2-Completed',
+        date_created DATETIME NOT NULL COMMENT 'Date and time when the batch was created',
         PRIMARY KEY (id),
         INDEX (batch_id)
     ) $charset_collate ENGINE=InnoDB;";
 
-    // Create the voucher table with InnoDB engine
+    // Create the voucher table with comments on columns
     $voucher_table_sql = "CREATE TABLE IF NOT EXISTS $voucher_table_name (
         id INT NOT NULL AUTO_INCREMENT,
-        voucher_pin VARCHAR(15) NOT NULL,
-        balance SMALLINT(4) NOT NULL DEFAULT 0,
-        batch_id VARCHAR(10) NOT NULL,
-        active_status TINYINT(1) NOT NULL DEFAULT 0,
+        voucher_pin VARCHAR(15) NOT NULL COMMENT 'Unique pin for each voucher',
+        balance SMALLINT(4) NOT NULL DEFAULT 0 COMMENT 'Remaining balance on the voucher',
+        batch_id VARCHAR(10) NOT NULL COMMENT 'Batch ID to which the voucher belongs',
+        active_status TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Active status: 0-Active, 1-Used, 2-deactivated',
         PRIMARY KEY (id),
         INDEX (voucher_pin)
     ) $charset_collate ENGINE=InnoDB;";
@@ -69,6 +69,7 @@ function epin_plugin_activate() {
     dbDelta($batch_table_sql);
     dbDelta($voucher_table_sql);
 }
+
 
 
 

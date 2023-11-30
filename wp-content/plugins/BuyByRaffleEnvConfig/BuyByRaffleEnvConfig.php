@@ -53,7 +53,3 @@ class BuyByRaffleEnvConfig {
         return $config;
     }
 }
-
-
-
-
