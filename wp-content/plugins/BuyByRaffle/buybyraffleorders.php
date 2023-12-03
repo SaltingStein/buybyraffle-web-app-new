@@ -1,15 +1,26 @@
 <?php
 include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuybyraffleGetHeroIdBybaitId.php';
- include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleRaffleCycleIdByProductId.php';
- include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleStakeHoldersOrderMetaHandler.php';
- include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleSendTicketExternalAPIHandler.php';
- include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleRunRaffle.php';
+include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleRaffleCycleIdByProductId.php';
+//  include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleStakeHoldersOrderMetaHandler.php';
+include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleSendTicketExternalAPIHandler.php';
+include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleRunRaffle.php';
 
 // Hook into the order completion event to run the splitOrderMeta function
 add_action('woocommerce_order_status_completed', 'OrderCompletionHandler', 10, 1);
 
+/**
+ * OrderCompletionHandler class handles the completion of WooCommerce orders.
+ * It processes orders with the 'bait' tag and manages the raffle cycle updates
+ * and winner selection.
+ */
 class OrderCompletionHandler {
-
+    /**
+     * Handles the completion of an order.
+     * It triggers various processes like splitting order meta, updating accumulated sales,
+     * sending notifications, and running raffle logic.
+     *
+     * @param int $order_id The WooCommerce order ID.
+     */
     public function handleOrderCompletion($order_id) {
         // Get the order
         $order = wc_get_order($order_id);
@@ -32,14 +43,26 @@ class OrderCompletionHandler {
         // Check if the product has the 'bait' tag
         $product_tags = wc_get_product_terms($product_id, 'product_tag', array('fields' => 'names'));
         if (in_array('bait', $product_tags)) {
-            //Split money to stakeholders
-             $orderMetaHandler = new BuyByRaffleStakeHoldersOrderMetaHandler();
-             $orderMetaHandler->splitOrderMeta($order_id);
+             // Check if BuybyRaffleCommission Model Settings plugin is active
+            if (is_plugin_active('buybyraffle-commissions/buybyraffle-commissions.php')) {
+                //Split money to stakeholders
+                $orderMetaHandler = new BuyByRaffleStakeHoldersOrderMetaHandler();
+                $orderMetaHandler->splitOrderMeta($order_id);
+            }else{
+                // Send email to admin
+                $admin_email = get_option('admin_email');
+                $subject = 'BuybyRaffleCommission Model Settings Plugin Not Active';
+                $message = 'The BuybyRaffleCommission Model Settings plugin is not active on your site. Please activate it to process stakeholders splitting features.';
+                wp_mail($admin_email, $subject, $message);
+                return 'error processing commission percentages. BBR Commissions plugin must be active';
+            }
+
+           
 
             // Get the raffle configuration from the database
             global $wpdb;
-            $table_name_config = 'wp_buybyraffle_product_config';
-            $table_name_association = 'wp_buybyraffle_bait_hero_association';
+            $table_name_config = $wpdb->prefix.'buybyraffle_product_config';
+            $table_name_association = $wpdb->prefix.'buybyraffle_bait_hero_association';
             // Get the hero_id from bait hero association
             $hero_id =  BuyByRaffleGetHeroIdByBaitId($product_id);
             if(empty($hero_id)){
@@ -156,7 +179,11 @@ class OrderCompletionHandler {
 
 // Hook into the order completion event to run the handleOrderCompletion function
 add_action('woocommerce_order_status_completed', 'bbr_handle_order_completion', 11, 1);
-
+/**
+ * Handles the completion of an order for BuyByRaffle.
+ *
+ * @param int $order_id The WooCommerce order ID.
+ */
 function bbr_handle_order_completion($order_id) {
     $orderCompletionHandler = new OrderCompletionHandler();
     $orderCompletionHandler->handleOrderCompletion($order_id);
@@ -168,6 +195,11 @@ function bbr_handle_order_completion($order_id) {
 // Hook into the order completion event to run the handleOrderCompletion function
 add_action('woocommerce_order_status_completed', 'bbr_create_remote_ticket', 12, 1);
 //TODO : Move all keys used by BuyByRaffleSendTicketExternalAPIHandler to a secure location
+/**
+ * Creates a remote ticket in an external system for a completed order.
+ *
+ * @param int $order_id The WooCommerce order ID.
+ */
 function bbr_create_remote_ticket($order_id) {
     $order = wc_get_order($order_id);
 

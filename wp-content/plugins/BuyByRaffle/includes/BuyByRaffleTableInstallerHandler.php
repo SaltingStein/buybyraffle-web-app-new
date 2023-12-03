@@ -163,7 +163,7 @@ class BuyByRaffleTableInstallerHandler {
                 `raffle_type_id` smallint NOT NULL COMMENT 'Raffle type ID (1: BuyByRaffle, 2: PayByRaffle, 3: TransferByRaffle)',
                 `raffle_cycle_id` mediumint NOT NULL COMMENT 'ID of the raffle cycle',
                 `accumulated_sales_value` decimal(9,2) DEFAULT NULL COMMENT 'Accumulated sales value for the product',
-                `status` enum('open','invalid','running','redeemed') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'open' COMMENT 'Status of the raffle (open, invalid, running, redeemed)',
+                `status` enum('0','1','2', '3', '4') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '0' COMMENT 'Status of the raffle (0=open, 1=invalid, 2=running, 3=closed, 4=redeemed)',
                 `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of when the record was created',
                 `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Timestamp of the last update to the record',
                 PRIMARY KEY (`id`),

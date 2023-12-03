@@ -1,7 +1,7 @@
 <?php
 
 
-use Sgs\Buybyraffle\BuyByRaffleEnvConfig;
+
 require_once plugin_dir_path(__FILE__) . '../../../BuyByRaffleEnvConfig/app.php';
 
 
