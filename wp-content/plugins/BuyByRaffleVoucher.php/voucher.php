@@ -70,11 +70,6 @@ function epin_plugin_activate() {
     dbDelta($voucher_table_sql);
 }
 
-
-
-
-
-
 /**
  * Adds a menu item for E-Pin Management in the WordPress admin menu.
  * Ensures the user has the 'manage_options' capability to access this menu item.
@@ -230,6 +225,7 @@ function getBearerToken($configFilePath) {
     }
 }
 
+include PGS_VOUCHERS . 'libraries/bloomFilter.php'; 
 include PGS_VOUCHERS . 'libraries/pubsubPublishEmailVoucherCsv.php';
 include PGS_VOUCHERS . 'libraries/pubsubPublisherVoucherGen.php'; 
 include PGS_VOUCHERS . 'libraries/pubsubConsumerVoucherGen.php'; 

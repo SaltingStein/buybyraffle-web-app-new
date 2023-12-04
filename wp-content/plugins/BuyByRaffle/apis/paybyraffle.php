@@ -105,7 +105,9 @@ function handle_raffle_transaction(WP_REST_Request $request) {
     // If cusomer exists, or create new
     // @TODO: clean up the phone number to align with allowed formats
     $customer_ID = ensure_customer_account($request->get_param('customer_msisdn'));
-
+    if($customer_ID==false){
+        return new WP_REST_Response(array('message' => 'invalid phone number'), 400);
+    }
     // Process raffle entry after verifying merchant and PTSP.
     $is_winner = process_raffle_entry($merchant_ID, $customer_ID, $request->get_param('ticket_value'), $request->get_param('POS_id'));
     
@@ -117,6 +119,10 @@ function handle_raffle_transaction(WP_REST_Request $request) {
 }
 
 function ensure_customer_account($customer_msisdn) {
+    $customer_msisdn = normalizeNigerianPhoneNumber($customer_msisdn);
+    if(!$customer_msisdn){
+        return false;
+    }
     $user_id = username_exists($customer_msisdn);
     if (!$user_id) {
         // Customer doesn't exist, so create a new user with a generic display name
@@ -130,11 +136,10 @@ function ensure_customer_account($customer_msisdn) {
         ]);
 
         // Add mobile number as user meta
-        update_user_meta($user_id, 'mobile_number', $customer_msisdn);
+        update_user_meta($user_id, 'billing_phone', $customer_msisdn);
 
         // Send welcome SMS - integrate with your SMS gateway here
-        //@TODO Implement post to pubsub in this function
-        send_welcome_sms($customer_msisdn);
+        send_notifications($customer_msisdn, "welcome");
     }
 
     // Return the user ID
@@ -317,8 +322,10 @@ function select_random_product($merchant_ID) {
  * @param int    $product_id  The ID of the product involved in the transaction.
  * @param float  $ticket_value The value of the ticket purchased by the customer.
  * @param bool   $is_winner   Indicates whether the customer is the winner of the raffle.
+ * @todo create a consumer that reads the transient to get the data to process
  */
 function enqueue_order_processing($merchant_ID, $customer_ID, $product_id, $ticket_value, $is_winner) {
+    global $configInstance;
     // Create a unique transient key
     $transient_key = 'order_processing_' . md5(uniqid('', true));
 
@@ -338,11 +345,20 @@ function enqueue_order_processing($merchant_ID, $customer_ID, $product_id, $tick
 
     // Publish message to Pub/Sub for processing
     try {
-        $pubSub = new Google\Cloud\PubSub\PubSubClient(['projectId' => 'your-google-cloud-project-id']);
-        $topic = $pubSub->topic('order_processing');
 
-        // Encode data as JSON and publish
-        $topic->publish(['data' => json_encode(['transient_key' => $transient_key])]);
+        $messageData = [
+            'transient_key' => "{$transient_key}"
+        ];
+
+        $projectId = 'buybyraffle';
+        $topicName = 'paybyraffle-order-processing';
+
+        $success = $configInstance->publishMessage($projectId, $topicName, $messageData);
+
+        if (!$success) {
+            // Handle failure
+            error_log('Failed to publish message to Pub/Sub.');
+        } 
 
     } catch (Exception $e) {
         error_log('Error publishing to Pub/Sub: ' . $e->getMessage());
@@ -380,37 +396,50 @@ function is_linked_to_merchant($ptsp_user_id, $merchant_ID) {
 }
 
 
-
-function send_welcome_sms($mobile_number) {
+//@TODO: create a consumer to deal with this
+function send_notifications($mobile_number, $type) {
+    global $configInstance;
     // Your Google Cloud project ID and Pub/Sub topic name
     $projectId = 'your-google-cloud-project-id';
     $topicName = 'notification';
 
     // Message payload
-    $messageData = [
+    $data = [
         'phoneNumber' => $mobile_number,
         'message' => 'Welcome to the Pay-By-Raffle service! Your account has been created.'
     ];
 
-    // Publish the message to the Pub/Sub topic
+   
+    $transient_key = $type.'_notification_processing_' . md5(uniqid('', true));
+
+
+    define( 'HOUR_IN_SECONDS', 3 * 60 * 60 ); // 3 hours
+
+    // Store data in a transient for a limited period (e.g., 3 hour)
+    set_transient($transient_key, $data, HOUR_IN_SECONDS);
+
+    // Publish message to Pub/Sub for processing
     try {
-        $pubSub = new Google\Cloud\PubSub\PubSubClient(['projectId' => $projectId]);
-        $topic = $pubSub->topic($topicName);
 
-        // Encode message data as JSON
-        $data = json_encode($messageData);
-        $topic->publish(['data' => $data]);
+        $messageData = [
+            'transient_key' => "{$transient_key}"
+        ];
 
-        // You can add additional logging or actions here if needed
+        $projectId = 'buybyraffle';
+        $topicName = 'paybyraffle-notification-processing';
+
+        $success = $configInstance->publishMessage($projectId, $topicName, $messageData);
+
+        if (!$success) {
+            // Handle failure
+            error_log('Failed to publish message to Pub/Sub.');
+        } 
+
     } catch (Exception $e) {
-        // Handle exceptions, like issues with Pub/Sub client
-        error_log('Error publishing to Pub/Sub: ' . $e->getMessage());
+        error_log('Error publishing notification (SMS) dispatch request to Pub/Sub: ' . $e->getMessage());
     }
 }
 
-function send_notifications($type, $recipient_details, $message) {
-    // Send out the notifications
-}
 
 function log_transaction($transaction_details) {
     // Log the transaction details

@@ -9,7 +9,7 @@ function BuyByRaffleRunRaffle($raffle_cycle_id) {
     global $configurations;
 
     // Now use $configurations array to access your configuration values
-    // For example, if you have an API URL in your config:
+    // For example, if you have an API URL in your config: :
     $apiUrl = $configurations['API_URL'] ?? null;
 
     // Ensure that the required configuration is present
