@@ -25,12 +25,12 @@ jobs:
     - name: SSH into DigitalOcean VM and deploy
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.DO_HOST }}
-        username: ${{ secrets.DO_USER }}
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_SECRET_KEY}}
         passphrase: ${{secrets.PASSPHRASE}}
         script: |
-          cd var/www/buybyraffle
+          cd var/www/buybyraffle/buybyraffle-web-app-new
           git pull origin main
           sudo systemctl restart apache2
 
