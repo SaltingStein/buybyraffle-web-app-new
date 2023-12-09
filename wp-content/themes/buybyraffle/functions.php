@@ -41,3 +41,43 @@ function normalizeNigerianPhoneNumber($phoneNumber) {
     return $phoneNumber;
 }
 
+/**
+ * Define constants for different environments
+ **/
+
+// Define constants for different environments
+define('LOCAL_CONFIG_FILE_PATH', 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json');
+define('DEVELOPMENT_CONFIG_FILE_PATH', 'C:\xampp\htdocs\buybyraffle\buybyraffle-dcc92f760bee.json');
+define('STAGING_CONFIG_FILE_PATH', '/home/master/applications/ksrazrveyz/private_html/buybyraffle-dcc92f760bee.json');
+define('PRODUCTION_CONFIG_FILE_PATH', '/home/master/applications/vbfntjqady/private_html/buybyraffle-dcc92f760bee.json');
+define('SERVER_IP', '138.68.91.147');
+define('STAGING_CONFIG_FILE_PATH_FOR_CASHTOKEN', '/home/master/applications/ksrazrveyz/private_html/cashtoken_idp_staging_env.json');
+define('PRODUCTION_CONFIG_FILE_PATH_FOR_CASHTOKEN', '/home/master/applications/vbfntjqady/private_html/cashtoken_idp_staging_env.json');
+define('expected_issuer','https://accounts.google.com');
+define('expected_audience', 'https://buybyraffle.com/wp-json/buybyraffle/v1/sendvouchersbymail');
+define('expected_email','buybyraffle-db@buybyraffle.iam.gserviceaccount.com');
+// Determine the environment (you can set this variable based on your logic)
+/*
+$expected_issuer = expected_issuer;
+$expected_audience = expected_audience;
+$expected_email = expected_email;
+switch ($environment) {
+    case 'local':
+        $configFilePath = LOCAL_CONFIG_FILE_PATH;
+        break;
+    case 'development':
+        $configFilePath = DEVELOPMENT_CONFIG_FILE_PATH;
+        break;
+    case 'staging':
+        $configFilePath = STAGING_CONFIG_FILE_PATH;
+        break;
+    case 'production':
+        $configFilePath = PRODUCTION_CONFIG_FILE_PATH;
+        break;
+    default:
+        $configFilePath = PRODUCTION_CONFIG_FILE_PATH; // Default to production
+        
+}
+*/
+
+    

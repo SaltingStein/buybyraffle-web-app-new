@@ -16,27 +16,53 @@ class BuyByRaffleEnvConfig {
     private function setEnvironmentConfig() {
         $environment = wp_get_environment_type();
 
+        // switch ($environment) {
+        //     case 'local':
+        //         $this->configFilePaths[] = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
+        //         $this->configFilePaths[] = 'C:\wamp64\www\wordpress\cashtoken_idp_local_env.json';
+        //         break;
+        //     case 'development':
+        //         $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\buybyraffle-dcc92f760bee.json';
+        //         $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\cashtoken_idp_local_env.json';
+        //         break;
+        //     ;
+        //     case 'staging':
+        //         $this->configFilePaths[] = '/var/env/buybyraffle-dcc92f760bee.json';
+        //         $this->configFilePaths[] = '/var/env/cashtoken_idp_staging_env.json';
+        //         //$this->configFilePaths[] = '/home/master/applications/aczbbjzsvv/private_html/cashtoken_idp_staging_env.json';
+        //         break;
+        //     ;
+        //     case 'production':
+        //         // Set paths for production environment
+        //         $this->configFilePaths[] = '/var/env/buybyraffle-c24c1f61c187.json';
+        //         $this->configFilePaths[] = '/var/env/cashtoken_idp_production_env.json';
+        //         break;
+        //     default:
+        //         $this->configFilePaths[] = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
+        //         $this->configFilePaths[] = 'C:\wamp64\www\wordpress\cashtoken_idp_local_env.json';
+        // }
         switch ($environment) {
             case 'local':
-                $this->configFilePaths[] = 'C:\wamp64\www\wordpress\buybyraffle_dcc92f760bee.json';
+                $this->configFilePaths[] = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
                 $this->configFilePaths[] = 'C:\wamp64\www\wordpress\cashtoken_idp_local_env.json';
                 break;
             case 'development':
-                $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\buybyraffle_dcc92f760bee.json';
+                $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\buybyraffle-dcc92f760bee.json';
                 $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\cashtoken_idp_local_env.json';
                 break;
-            ;
             case 'staging':
-                $this->configFilePaths[] = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';
-                $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\cashtoken_idp_staging_env.json';
+                // Use the previously defined constants for staging environment
+                $this->configFilePaths[] = STAGING_CONFIG_FILE_PATH; // Use the staging config file path
+                $this->configFilePaths[] = STAGING_CONFIG_FILE_PATH_FOR_CASHTOKEN; // Replace with the actual constant for Cashtoken config
                 break;
-            ;
             case 'production':
-                $this->configFilePaths[] = '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle-dcc92f760bee.json';
-                $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\cashtoken_idp_production_env.json';
+                // Use the previously defined constants for production environment
+                $this->configFilePaths[] = PRODUCTION_CONFIG_FILE_PATH; // Use the production config file path
+                $this->configFilePaths[] = PRODUCTION_CONFIG_FILE_PATH_FOR_CASHTOKEN; // Replace with the actual constant for Cashtoken config
                 break;
             default:
-                error_log("Unrecognized environment type: $environment");
+                $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\buybyraffle-dcc92f760bee.json';
+                $this->configFilePaths[] = 'C:\xampp\htdocs\wordpress\cashtoken_idp_local_env.json';
         }
     }
 
@@ -96,22 +122,40 @@ class BuyByRaffleEnvConfig {
         $configFilePath = ''; // Initialize variable
  
         // Determine the correct configuration file path based on the environment
+        // switch ($environment) {
+        //     case 'local':
+        //         $configFilePath = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
+        //         break;
+        //     case 'development':
+        //             $configFilePath = 'C:\xampp\htdocs\buybyraffle\buybyraffle-dcc92f760bee.json';
+        //         break;
+        //     case 'staging':
+        //         //$configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';
+        //         $configFilePath = '/var/env/buybyraffle-dcc92f760bee.json';
+        //         break;
+        //     case 'production':
+        //         $configFilePath = '/var/env/buybyraffle-c24c1f61c187.json';
+        //         break;
+        //     default:
+        //         $configFilePath = '/var/env/buybyraffle-dcc92f760bee.json';
+        //         break;
+        // }
         switch ($environment) {
             case 'local':
-                $configFilePath = 'C:\wamp64\www\wordpress\buybyraffle-dcc92f760bee.json';
+                $configFilePath = LOCAL_CONFIG_FILE_PATH;
                 break;
             case 'development':
-                    $configFilePath = 'C:\xampp\htdocs\buybyraffle\buybyraffle-dcc92f760bee.json';
+                $configFilePath = DEVELOPMENT_CONFIG_FILE_PATH;
                 break;
             case 'staging':
-                $configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';
+                $configFilePath = STAGING_CONFIG_FILE_PATH;
                 break;
             case 'production':
-                $configFilePath = '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle-dcc92f760bee.json';
+                $configFilePath = PRODUCTION_CONFIG_FILE_PATH;
                 break;
             default:
-                error_log("Unexpected environment type: $environment");
-                return; // Exit if the environment is not recognized
+                $configFilePath = PRODUCTION_CONFIG_FILE_PATH; // Default to production
+              
         }
 
         // Assuming the getBearerToken function exists and fetches a valid bearer token

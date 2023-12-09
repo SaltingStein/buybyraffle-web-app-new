@@ -63,7 +63,7 @@ add_action('admin_enqueue_scripts', 'enqueue_admin_scripts');
  * in environments that are marked as safe for such operations.
  */
 function buybyraffle_deactivation() {
-    $allowed_ips = ['127.0.0.1', '::1', '138.68.91.147']; // Localhost and staging IPs.
+    $allowed_ips = ['127.0.0.1', '::1', SERVER_IP]; // Localhost and staging IPs.
 
     $current_ip = $_SERVER['REMOTE_ADDR'] ?? '';
     $current_host = $_SERVER['HTTP_HOST'] ?? '';

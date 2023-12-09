@@ -1,9 +1,5 @@
 <?php
-
-
-
-require_once plugin_dir_path(__FILE__) . '../../../BuyByRaffleEnvConfig/app.php';
-
+require_once ABSPATH . 'wp-content/plugins/BuyByRaffleEnvConfig/app.php';
 
 function BuyByRaffleRunRaffle($raffle_cycle_id) {
     global $configurations;

@@ -1,9 +1,10 @@
 <?php
-include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuybyraffleGetHeroIdBybaitId.php';
+include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleGetHeroIdByBaitId.php';
 include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleRaffleCycleIdByProductId.php';
 //  include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleStakeHoldersOrderMetaHandler.php';
 include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleSendTicketExternalAPIHandler.php';
 include ABSPATH . 'wp-content/plugins/BuyByRaffle/includes/orders-processing/BuyByRaffleRunRaffle.php';
+// mv BuyByRaffleGetHeroIdByBaitId.php BuyByRaffleGetHeroIdByBaitId.php
 
 // Hook into the order completion event to run the splitOrderMeta function
 add_action('woocommerce_order_status_completed', 'OrderCompletionHandler', 10, 1);

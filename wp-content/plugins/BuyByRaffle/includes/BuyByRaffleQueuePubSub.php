@@ -94,12 +94,13 @@ class BuyByRaffleQueuePubSub extends WP_REST_Controller {
                 break;    
             case 'staging':
                 // Set path for staging environment (assuming '138.68.91.147' is your staging server)
-                $this->configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';
+                //$this->configFilePath = '/home/master/applications/aczbbjzsvv/private_html/buybyraffle-dcc92f760bee.json';
+                $this->configFilePath = '/var/env/buybyraffle-dcc92f760bee.json';
                 break;
             case 'production':
                 // Set path for production environment
-                $this->configFilePath = '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle-dcc92f760bee.json';
-                break;
+                $this->configFilePath = '/var/env/buybyraffle-c24c1f61c187.json';
+                break; 
             default:
                 // Handle unexpected environment
                 $errorMessage = "Unexpected environment type: $environment";

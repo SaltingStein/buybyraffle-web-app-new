@@ -110,26 +110,12 @@ class BuyByRaffleCycleHandler {
             case 'development':
                 return 'C:\xampp\htdocs\wordpress\buybyraffle_local_env.json';
             case 'staging':
-                return '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_env.json';
+                //return '/home/master/applications/aczbbjzsvv/private_html/buybyraffle_env.json';
+                return '/var/env/cashtoken_idp_staging_env.json';
             case 'production':
-                return '/home/master/applications/bbqpcmbxkq/private_html/buybyraffle_env.json';
+                return '/var/env/cashtoken_idp_production_env.json';
             default:
-                // Handle unexpected environment
-                $errorMessage = "Unexpected environment type: $environment";
-                error_log($errorMessage);
-
-                // Send an email notification
-                $to = 'terungwa@cashtoken.africa'; // Replace with your admin email address
-                $subject = 'Configuration Error in BuyByRaffleCycleHandler';
-                $message = "An error occurred in the BuyByRaffleCycleHandler: $errorMessage";
-                $headers = 'From: admin@buybyraffle.com' . "\r\n"; // Replace with your from email address
-
-                if (!mail($to, $subject, $message, $headers)) {
-                    error_log('Failed to send email regarding environment configuration error.');
-                }
-
-                // Set a default configuration path or handle the error
-                //$this->configFilePath = '/path/to/default/config.json';
+                "C:\wamp64\www\wordpress\buybyraffle_local_env.json";
                 break;
         }
     }

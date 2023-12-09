@@ -1,0 +1,19 @@
+{
+    "name": "mzerm/universal-message-hub",
+    "type": "library",
+    "require": {
+        "firebase/php-jwt": "^6.10",
+        "web-token/jwt-key-mgmt": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mzerm\\UniversalMessageHub\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "terungwa",
+            "email": "terungwa@onenumba.ng"
+        }
+    ]
+}
